@@ -14,7 +14,13 @@ update_id = None
 
 if response.status_code == 200: # Jika response 200 atau success
     for item in response.json().get("result"): # Untuk setiap pesan
-        chat_id = item.get("message").get('chat').get("id") # Ambil id chat user
+        if "message" in item:
+            type_chat = item.get("message")
+        elif "edited_message" in item:
+            type_chat = item.get("edited_message")
+        else:
+            continue # sementara belum tahu
+        chat_id = type_chat.get('chat').get("id") # Ambil id chat user
         response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":message_to_chat}) # kirimkan pesan kepada user     
         if response_chat.status_code == 200:
             update_id = item.get("update_id") # Ambil update_id terakhir
