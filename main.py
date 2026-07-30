@@ -1,13 +1,19 @@
 import requests
 import os
 from dotenv import load_dotenv
+from google import genai
+
+
 
 # Memuat seluruh variabel .env 
 load_dotenv()
 telegram_bot_api = os.getenv("TELEGRAM_BOT_API_KEY")
+gemini_api = os.getenv("GEMINI_API_KEY")
 url_telegram = f"https://api.telegram.org/bot{telegram_bot_api}"
 message_to_chat = "Hai, kamu berhasil chat"
 update_id = None
+
+client = genai.Client(api_key=gemini_api)
 
 while True:
     # Mengirimkan request GET ke api telegram Bot dengan API yang sudah di muat update chat
@@ -26,7 +32,14 @@ while True:
                 continue # sementara belum tahu
             
             chat_id = type_chat.get('chat').get("id") # Ambil id chat user
-            response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":message_to_chat}) # kirimkan pesan kepada user     
+            text_user = type_chat.get('text')
+
+            interaction = client.interactions.create(
+                model="gemini-3.6-flash",
+                input=text_user
+            )
+            response_gemini = interaction.output_text
+            response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_gemini}) # kirimkan pesan kepada user     
             
             if response_chat.status_code == 200:
                 update_id = item.get("update_id") # Ambil update_id terakhir
