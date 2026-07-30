@@ -1,6 +1,10 @@
-### 29 Jul 
+### 31 Jul 
 - mentok: bingung baca docs python-telegram-bot. sebab: kejauhan, itu library, bukan API mentahnya. solusi: pakai core.telegram.org/bots/api langsung.
 - mentok: getUpdates kosong terus. sebab: belum pernah chat bot-nya sejak Februari. solusi: kirim pesan dulu, baru ada isinya.
-- mentok: Loop hasil response agar tidak perlu memakai index 0 sempat error. sebab: ternyata yang diloop dictionary, beda cara for loopnya, harus memakai 2 key. solusi: memakai 2 key dalam loop sesuai aturan for loop dictionaru
+- mentok: item hasil loop bertipe string, `.get()` error. sebab: aku me-loop dict pembungkusnya, dan iterasi dict menghasilkan key (string), bukan isinya. sempat kupakai `.items()` (2 variabel) dan itu memang cara benar untuk dict — tapi bukan yang kubutuhkan. solusi: masuk dulu ke `result` yang berupa list, baru di-loop; iterasi list menghasilkan dict utuh. pelajaran: cek `type()` dulu sebelum menulis for.
 - mentok: error ketika mau get user id. sebab: salah masuk field ketika membaca struktur json. solusi: membaca ulang struktur map jsonnya dan mengambil sesuai path yang benar.
 - mentok: sempat bingung cara mengirim pesan ke telegram via bot. sebab: belum ada ilmu dari dokumentasi. solusi: membaca dokumentasi dan menemukan sendMessage beserta parameternya, dipakai dalam konteks get.
+- mentok: offset -1 cuma balas 1x. sebab: salah paham, kukira offset itu penanda posisi. solusi: baca pelan, offset di atas update_id = konfirmasi, Telegram lupa yang lama.
+- mentok: blok `if` untuk cek keberhasilan kirim pesan tidak pernah jalan. sebab: kutulis `response_chat == 200`, padahal requests mengembalikan objek Response, bukan angka. solusi: pakai `.status_code` — pola yang sama persis sudah kutulis di baris atasnya, tapi tidak kusadari.
+- mentok: bingung menentukan kapan offset dikonfirmasi. sebab: konfirmasi per pesan boros request; konfirmasi di akhir tanpa syarat bisa menghapus pesan yang gagal diproses. solusi: catat update_id hanya kalau kirim berhasil, `break` di kegagalan pertama, konfirmasi sekali di akhir. prinsipnya: acknowledge SETELAH proses berhasil, bukan sebelum — lebih baik dobel daripada hilang.
+- mentok: NameError di baris konfirmasi offset. sebab: `update_id` di-assign di dalam loop, dan kukira kalau loop tidak berputar maka baris setelahnya ikut terlewat. ternyata tidak — kode setelah loop tetap jalan, dan variabel yang tidak pernah di-assign memang tidak pernah ada. solusi: inisialisasi sebelum loop, lalu jaga baris konfirmasinya dengan `if update_id:`.
