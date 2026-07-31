@@ -1,3 +1,4 @@
 .env
 .venv
 note.py
+table.sql
