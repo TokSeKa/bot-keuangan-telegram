@@ -1,7 +1,6 @@
 from google import genai
 from pydantic import BaseModel, Field
-from typing import List, Optional
-from typing import Union, Literal
+from typing import Literal, Optional
 
 import os
 from dotenv import load_dotenv
