@@ -2,3 +2,4 @@
 .venv
 note.py
 table.sql
+__pycache__
