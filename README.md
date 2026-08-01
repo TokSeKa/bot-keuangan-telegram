@@ -5,7 +5,7 @@ Aplikasi keuangan terintegrasikan LLM untuk mengurus keuangan pribadi via chat t
 Penggunaan aplikasi pencatat keuangan meminta user untuk secara aktif menuliskan transaksi pribadinya secara manual dengan pola yang rigid dan rentan pencatatan yang berantakan dan membutuhkan keinginan mental yang tinggi. Produk ini ingin mengurangi friksi yang diperlukan pengguna dalam menulis keuangan personal dengan cara membuat pencatatan sebebas mungkin. 
 
 ## Screenshot Telegram
-- coming soon
+![Alt Text](images/doc_telegram_chat.png)
 
 ## Alur sistem ini:
 1. Pengguna mengirimkan pesan ke bot Telegram
@@ -35,6 +35,6 @@ Python, GeminiApi, PostgreSQL, TelegramBotAPI, psycopg3
 
 ## Setelah mengimport project ini lakukan:
 * pip install -r requirements.txt
-* Buat database Postgre. Jalankan "py init_db.py" untuk struktur table yang dipakai.
+* Buat database Postgre. Jalankan "py init/init_db.py" untuk struktur table yang dipakai.
 * Ubah ".env.example" menjadi ".env"; Isi dengan value yang diperlukan;
 * Jalankan "py main.py"
