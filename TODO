@@ -5,11 +5,9 @@
 - [*] Simpan transaksi hasil parsing ke database
 - [ ] Baca, edit, hapus transaksi
 - [ ] Docker + deploy
-
-## Sesi berikutnya
-- [ ] Gemini keluarkan JSON terstruktur (nominal, kategori, tipe, deskripsi) — bukan teks bebas
-- [ ] Validasi JSON punya field yang diharapkan sebelum dipakai; tolak kalau tidak lolos
-- [ ] Balas ke Telegram dengan konfirmasi yang disusun dari data hasil parsing
+- [*] Gemini keluarkan JSON terstruktur (nominal, kategori, tipe, deskripsi) — bukan teks bebas
+- [*] Validasi JSON punya field yang diharapkan sebelum dipakai; tolak kalau tidak lolos
+- [*] Balas ke Telegram dengan konfirmasi yang disusun dari data hasil parsing
       Tes: kirim "beli kopi 20rb" → balasan menunjukkan 20000, makanan, pengeluaran
 
 ## Sengaja ditunda (bukan tertinggal)
