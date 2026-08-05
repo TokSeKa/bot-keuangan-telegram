@@ -72,6 +72,7 @@ while True:
                                                                     tipe=response_gemini.tipe, 
                                                                     chat_id=chat_id)
                             # Khusus tanggal di ubah ke WIB
+                            print(response_insert)
                             response_waktu_balasan = response_insert['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
                             response_insert_telegram = f"{response_insert['nama']}\nNominal: Rp.{response_insert['nominal']} telah tercatat!\nKategori: {response_insert['kategori']}\nWaktu: {response_waktu_balasan} \nTipe: {response_insert['tipe']}"
                         except Exception as e:
