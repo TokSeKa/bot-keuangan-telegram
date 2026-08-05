@@ -26,7 +26,7 @@ class Transaksi(BaseModel):
     catatan: Optional[str] = Field(description="Catatan kaki dari user.")
     kategori: Literal["Lainnya", "Makanan", "Minuman", "Pakaian", "Alat mandi", "Tagihan Rumah", "Transportasi", "Telepon", "Sosial", "Perbaikan", "Kesehatan", "Olahraga", "Hiburan", "Pendidikan"] = Field(description="Kategori aktivitas yang disebut user")
     tipe: Literal["Pengeluaran", "Pemasukan"] = Field(description="Tipe aktifitas berupa ingin melakukan transaksi Pengeluaran atau Pemasukan")
-    fungsi: Literal["Pencatatan", "Perubahan", "Penghapusan", "Pencarian", "Penolakan"] = Field(description="Jenis fungsi yang perlu dipakai dalam aktifitas ini, pakai Penolakan hanya ketika teks dari user tidak dapat diindetifikasi keinginannya. Contoh: Membeli tanpa menyebut nominal")
+    fungsi: Literal["Pencatatan", "Perubahan", "Penghapusan", "Pencarian", "Penolakan"] = Field(description="Jenis fungsi yang perlu dipakai dalam aktifitas ini, pakai Penolakan hanya ketika teks dari user tidak dapat diindetifikasi keinginannya. Contoh: Membeli tanpa menyebut nominal. Perubahan hanya dilakukan jika user mengedit pesan sebelumnya dan terdapat transaksi sebelumnya sebagai konteks") # Ini belum selesai, tapi mau test apa yang akan diberikan ai sebagai jawaban
     response: str = Field(description="Respon Terhadap permintaan user yang dipakai untuk menjawab chat user, jika fungsi berupa Penolakan berikan alasanmu kepada user")
 
 # Fungsi mengirimkan ke gemini, nantinya text nya di balut dengan promt
