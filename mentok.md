@@ -13,3 +13,5 @@
 - mentok: response gemini tidak konsisten ketika dirancang untuk memberikan gaya json. sebab: LLM ada kemungkinan halu, dan pengecekan tadi LLM memberikan tanda petik sehinggaa menjadikannya tidak konsisten. solusi: Pemakaian sesuai yang disarankan developer api Gemini, skema Json yang rigid
 - mentok: returning error, sintaks belum paham cara pakainya. sebab: karena tergolong baru bagi dev. solusi: baca dokumentasi, googling, dan nanya AI penggunaannya.
 - mentok: pengen bikin fallback untuk model yang dipanggil gemini, tapi exceptionnya ntah kenapa nyangkut di main, gabisa fallback didalam fungsi. sebab: error exceptionnya salah panggil daritadi ternyata. solusi: cek apa yang terkandung di e nya exception, baru dicocokkan. 
+### 5 Agustus
+- mentok: Mau bikin testing untuk CRUDS tapi merusak DB saat ini jika salah/rusak. sebab: karena ketika melakukan query apapun, beneran masuk ke database. Solusi: antara bikin DB baru, atau kodenya ganti biar bisa test nyaman, untuk saat ini bikin DB baru lebih mudah.
