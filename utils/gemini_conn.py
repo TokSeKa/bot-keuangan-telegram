@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_penolakan_declaration
+from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_penolakan_declaration, search_transaksi_multi_declaration
 
 gemini_api = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=gemini_api)
@@ -28,7 +28,7 @@ def send_chat_llm(input_user):
             interaction  = client.interactions.create(
                     model=model,
                     input=input_user,
-                    tools=[insert_transaksi_declaration, jawaban_telegram_penolakan_declaration],
+                    tools=[insert_transaksi_declaration, jawaban_telegram_penolakan_declaration, search_transaksi_multi_declaration],
                     generation_config={"tool_choice": "any"},
                 )
             return interaction.steps

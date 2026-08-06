@@ -8,7 +8,7 @@ import zoneinfo
 from time import sleep
 
 #Own function
-from utils.database import insert_transaksi
+from utils.database import insert_transaksi, search_transaksi_multi
 from utils.gemini_conn import send_chat_llm
 from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram_penolakan
 
@@ -76,6 +76,17 @@ while True:
                             try:
                                 response_insert = insert_transaksi(tanggal=tanggal_input, chat_id=chat_id, **step.arguments)
                                 response_insert_telegram = jawabanTelegramInsert(response_insert)
+                            except Exception as e:
+                                print(e)   
+                                update_id = item.get("update_id") # Ambil update_id terakhir
+                                response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
+                                continue
+                            print(f"Function to call: {step.name}")
+                            print(f"Arguments: {step.arguments}")
+                        if (step.name == "search_transaksi_multi"):
+                            try:
+                                hasil_transaksi = search_transaksi_multi(chat_id=chat_id, **step.arguments)
+                                response_insert_telegram = "\n".join([str(row) for row in hasil_transaksi]) # Tes keluarin dulu, nanti rencananya bisa pakai untuk search.
                             except Exception as e:
                                 print(e)   
                                 update_id = item.get("update_id") # Ambil update_id terakhir

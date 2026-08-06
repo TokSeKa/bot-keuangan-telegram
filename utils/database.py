@@ -41,7 +41,7 @@ def insert_transaksi(nama, nominal, kategori, tanggal, tipe, chat_id, catatan=No
             
 # Mencari transaksi ke database berdasarkan timestamp + id chat user
 # Output harapan: Memberikan konteks kepada LLM
-def select_transaksi(tanggal, chat_id, conn=None):
+def select_transaksi_by_tanggal_and_chat_id(tanggal, chat_id, conn=None):
     sql = "SELECT * FROM transaksi WHERE tanggal = %s AND chat_id = %s"
     if conn:
         ctx = nullcontext(conn) # Biar bisa passing conn dari luar
@@ -52,6 +52,64 @@ def select_transaksi(tanggal, chat_id, conn=None):
             with conn.transaction():
                 with conn.cursor(row_factory=dict_row) as cur:
                     cur.execute(sql,(tanggal, str(chat_id)))
+                    return cur.fetchall()
+        except psycopg.Error as e:
+            print(f"Error occurred, transaction rolled back: {e}")
+            
+# Mencari transaksi makai fungsi %like% di SQL, mengembalikan seluruh data untuk nantinya ditampilkan menjadi tombol
+def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, catatan=None, tanggal_awal=None, tanggal_akhir=None, nominal=None, batas_nominal_bawah=None, batas_nominal_atas=None, conn=None):
+    sql = "SELECT * FROM transaksi"
+    kondisi = []
+    parameter = []
+    
+    # 2. Cek variabelnya satu per satu
+    if chat_id is not None:
+        kondisi.append("chat_id ILIKE %s")
+        parameter.append(str(chat_id))
+    if nama is not None:
+        kondisi.append("nama ILIKE %s")
+        parameter.append(f"%{nama}%")
+    if kategori is not None:
+        kondisi.append("kategori = %s")
+        parameter.append(kategori)
+    if tipe is not None:
+        kondisi.append("tipe = %s")
+        parameter.append(tipe)
+    if catatan is not None:
+        kondisi.append("catatan ILIKE %s")
+        parameter.append(f"%{catatan}%")
+    if tanggal_awal is not None:
+        kondisi.append("tanggal >= %s")
+        parameter.append(tanggal_awal)
+    if tanggal_akhir is not None:
+        kondisi.append("tanggal <= %s")
+        parameter.append(tanggal_akhir)
+    if nominal is not None:
+        kondisi.append("nominal = %s")
+        parameter.append(nominal)
+    if batas_nominal_bawah is not None:
+        kondisi.append("nominal >= %s")
+        parameter.append(batas_nominal_bawah)
+    if batas_nominal_atas is not None:
+        kondisi.append("nominal <= %s")
+        parameter.append(batas_nominal_atas)
+    # 3. Kalau ada kondisi yang terkumpul, gabungkan dengan WHERE dan AND
+    if kondisi:
+        # Menyatukan list menjadi kalimat: " WHERE nama ILIKE %s AND kategori ILIKE %s"
+        sql += " WHERE " + " AND ".join(kondisi)
+        sql += " ORDER BY tanggal DESC LIMIT 10" # Sesuaikan tanggal terbaru + hanya 10 biar gak berat;
+        print("INI SQL NYA: "+ sql)
+        print("INI PARAMETER NYA: "+ str(parameter))
+        
+    if conn:
+        ctx = nullcontext(conn) # Biar bisa passing conn dari luar
+    else:
+        ctx = psycopg.connect(dbname=nama_database, user=user_database, password=password_postgresql)
+    with ctx as conn:
+        try:
+            with conn.transaction():
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(sql, parameter)
                     return cur.fetchall()
         except psycopg.Error as e:
             print(f"Error occurred, transaction rolled back: {e}")

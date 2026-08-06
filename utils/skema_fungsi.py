@@ -66,3 +66,46 @@ jawaban_telegram_penolakan_declaration = {
         "required": ["response"],
     },
 }
+
+
+prompt_search_transaksi_multi = {
+    "nama": "Identitas transaksi. Pencarian menggunakan SQL: LIKE %nama%. Gunakan kata kunci paling relevan dari input user. Jika user tidak secara spesifik mencari nama transaksi tertentu, jangan gunakan field ini.",
+    
+    "kategori": "Kategori transaksi (menyesuaikan enum). Jika user tidak secara spesifik mencari kategori tertentu, jangan gunakan field ini.",
+    
+    "tipe": "Tipe transaksi (menyesuaikan enum). Jika user tidak secara spesifik mencari tipe tertentu, jangan gunakan field ini. Hanya gunakan pilihan Pengeluaran atau Pemasukan. Tipe tidak bisa jenis lain.",
+    
+    "catatan": "Catatan tambahan transaksi (opsional, bisa jadi kosong di database). Pencarian menggunakan SQL: LIKE %catatan%. Gunakan kata kunci paling relevan. Jika user tidak secara spesifik mencari isi catatan tertentu, jangan gunakan field ini.",
+    
+    "tanggal_awal": "Batas waktu awal transaksi. Keluarkan HANYA format: YYYY-MM-DD HH:MM:SS+00:00 (Contoh: 2026-08-06 14:16:33+00:00). Sistem akan mencari transaksi yang lebih baru dari tanggal ini. Contoh kasus: Jika user bertanya '(kemarin aku beli apa aja ya?)' pada saat waktu saat ini adalah 2026-08-06 14:16:33+00:00, maka kurangi 24 jam dan isi field ini dengan 2026-08-05 14:16:33+00:00. Dapat digabungkan dengan tanggal_akhir untuk mencari rentang waktu. Jangan pakai huruf T pemisah tanggal dan waktu.",
+    
+    "tanggal_akhir": "Batas waktu akhir transaksi. Keluarkan HANYA format: YYYY-MM-DD HH:MM:SS+00:00. Sistem akan mencari transaksi yang lebih tua/lama dari tanggal ini. Contoh kasus: Jika user bertanya '(sebelum jam 12 hari ini aku beli apa aja ya?)' pada 2026-08-06 14:16:33+00:00, sesuaikan jamnya dan isi field ini dengan 2026-08-06 12:00:00+00:00. Dapat digabungkan dengan tanggal_awal untuk mencari rentang waktu. Jangan pakai huruf T pemisah tanggal dan waktu.",
+    
+    "nominal": "Nominal spesifik (eksak) transaksi. Hanya gunakan field ini jika user secara spesifik menyebutkan angka atau harga transaksi yang dicari.",
+    
+    "batas_nominal_bawah": "Batas minimum nominal pencarian. Sistem akan mencari transaksi dengan nominal di atas angka ini. Dapat digabungkan dengan batas_nominal_atas untuk mencari rentang nominal tertentu.",
+    
+    "batas_nominal_atas": "Batas maksimum nominal pencarian. Sistem akan mencari transaksi dengan nominal di bawah angka ini. Dapat digabungkan dengan batas_nominal_bawah untuk mencari rentang nominal tertentu."
+}
+
+# def search_transaksi_multi(nama=None, kategori=None, tipe=None, catatan=None, chat_id=None, tanggal_awal=None, tanggal_akhir=None, nominal=None, batas_nominal_bawah=None, batas_nominal_atas=None, conn=None):
+search_transaksi_multi_declaration = {
+    "type": "function",
+    "name": "search_transaksi_multi",
+    "description": "Melakukan pencarian query SQL ke database postgre. Pakai fungsi ini ketika diminta mencari sebuah data tertentu atau membutuhkan konteks data ini agar bisa melakukan fungsi berikutnya.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "nama": {"type": "string", "description": prompt_search_transaksi_multi["nama"]},
+            "kategori": {"type": "string", "enum": ["Lainnya", "Makanan", "Minuman", "Pakaian", "Alat mandi", "Tagihan Rumah", "Transportasi", "Telepon",   "Sosial", "Perbaikan", "Kesehatan", "Olahraga", "Hiburan", "Pendidikan"], "description": prompt_search_transaksi_multi["kategori"]},
+            "tipe": {"type": "string", "enum": ["Pengeluaran", "Pemasukan"], "description": prompt_search_transaksi_multi["tipe"]},
+            "catatan": {"type": "string", "description": prompt_search_transaksi_multi["catatan"]},
+            "tanggal_awal": {"type": "string", "description": prompt_search_transaksi_multi["tanggal_awal"]},
+            "tanggal_akhir": {"type": "string", "description": prompt_search_transaksi_multi["tanggal_akhir"]},
+            "nominal": {"type": "integer", "description": prompt_search_transaksi_multi["nominal"]},
+            "batas_nominal_bawah": {"type": "integer", "description": prompt_search_transaksi_multi["batas_nominal_bawah"]},
+            "batas_nominal_atas": {"type": "integer", "description": prompt_search_transaksi_multi["batas_nominal_atas"]},
+        },
+        "required": [],
+    },
+}
