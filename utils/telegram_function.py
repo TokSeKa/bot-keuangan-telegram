@@ -2,18 +2,24 @@ import requests
 import zoneinfo
 from utils.database import select_transaksi
 
+# IS FUNCTION
+
+# Fungsi untuk ngecek apakah pesannya bertipe Pinned (akan abaikan jika iya)
 def isPinnedMessage(item, type_chat): # Mengembalikan True jika ada kunci 'pinned_message', False jika tidak ada
     return bool(item.get(type_chat, {}).get('pinned_message'))
 
-def jawabanTelegramInsert(response_insert):
-    response_waktu_balasan = response_insert['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
-    return f"""Telah tercatat!
-Nama: {response_insert['nama']}
-Nominal: Rp.{response_insert['nominal']}
-Kategori: {response_insert['kategori']}
-Waktu: {response_waktu_balasan} 
-Tipe: {response_insert['tipe']}"""    
 
+# GETTER SETTER
+   
+# Fungsi untuk memanggil semua chat yang masuk dan return hasilnya untuk di olah satu persatu.     
+def getUpdatesTelegramBerkala (url_telegram, update_id=None):
+    if update_id:
+        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300, "offset":update_id+1})
+    else:
+        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300})
+
+
+# Fungsi untuk mengecek konteks chat user, lalu memberikan sebuah bungkus promt tambahan sebagai konteks tambahan.
 def konteksChatUserTelegram(type_chat, tanggal_input, text_user, chat_id=None, tanggal_edit=None):
     if type_chat == "edited_message": #Edited
         konteks_transaksi_edit = ""
@@ -29,11 +35,19 @@ def konteksChatUserTelegram(type_chat, tanggal_input, text_user, chat_id=None, t
         
         tipe_konteks_chat = f"Ini adalah Pesan baru dari User dengan tanggal input {tanggal_input}."
     return tipe_konteks_chat+"\nBerikut pesan user: "+ text_user # Ambil teks user / user tidak mengirimkan text
-        
-def getUpdatesTelegramBerkala (url_telegram, update_id=None):
-    if update_id:
-        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300, "offset":update_id+1})
-    else:
-        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300})
 
-          
+
+# RESPONSE SITE
+
+# Jawaban untuk telegram setelah insert
+def jawabanTelegramInsert(response_insert):
+    response_waktu_balasan = response_insert['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+    return f"""Telah tercatat!
+Nama: {response_insert['nama']}
+Nominal: Rp.{response_insert['nominal']}
+Kategori: {response_insert['kategori']}
+Waktu: {response_waktu_balasan} 
+Tipe: {response_insert['tipe']}"""    
+
+def jawaban_telegram_penolakan(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
+    return response

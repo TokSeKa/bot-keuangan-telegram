@@ -10,7 +10,7 @@ from time import sleep
 #Own function
 from utils.database import insert_transaksi
 from utils.gemini_conn import send_chat_llm
-from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage
+from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram_penolakan
 
 # Memuat seluruh variabel .env 
 load_dotenv()
@@ -68,37 +68,31 @@ while True:
                     update_id = item.get("update_id") # Ambil update_id terakhir
                     response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, AI sedang diluar jangkauan! silakan coba lagi nanti!"}) 
                     continue
-                print("Respon gemini: " + response_gemini.fungsi ) #DEBUG
                 
-                
-                # Insert transaksi
-                if (response_gemini.fungsi == "Pencatatan"):
-                    try:
-                        response_insert = insert_transaksi(nama=response_gemini.nama, nominal=response_gemini.nominal, catatan=response_gemini.catatan, kategori=response_gemini.kategori, tanggal=tanggal_input, tipe=response_gemini.tipe, chat_id=chat_id)
-                        # Khusus tanggal di ubah ke WIB
-                        print(response_insert) #DEBUG
-                        response_insert_telegram = jawabanTelegramInsert(response_insert)
-                    except Exception as e:
-                        print(e)   
-                        update_id = item.get("update_id") # Ambil update_id terakhir
-                        response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
-                        continue
-                    
-                # TODO : BIKIN EDITED MESSAGE DENGAN SISTEM : KALAU DETEKSI EDIT, MAKA CARI DULU DATANYA TRANSAKSI SEBAGAI KONTEKS TAMBAHAN KE GEMINI; JIKA ADA MAKA KIRIMKAN; JIKA GAK ADA MAKA BILANG AJA GAKA ADA; JIKA ADA MAKA KIRIMKAN APA ISINYA;
-                elif response_gemini.fungsi == "Perubahan":
-                    response_insert_telegram = response_gemini.response or "Perubahan tidak dilakukan"
-                elif response_gemini.fungsi == "Penolakan":
-                    response_insert_telegram = response_gemini.response or "Penolakan tidak dilakukan"
-                else:
-                    response_insert_telegram = "Maaf Permintaan Anda belum dapat dilakukan!"
-                
-                # Memberikan respon akhir ke user dari telegram
-                response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_insert_telegram}) # kirimkan pesan kepada user     
-                if response_chat.status_code == 200: # KEKNYA BAKAL TETAP KE SKIP DEH WALAU ERROR ATAU GMN2?? CASE: JIKA DATA MASUK PUN DAN TELE ERROR, DIA BAKAL TETAP MAJU ANYWAY
-                    update_id = item.get("update_id") # Ambil update_id terakhir
-                else: # ini harusnya kalau bisa transaksi terakhir dibatalin somehow, # TODO future.
-                    sleep(10)
-                    break
+                for step in response_gemini:
+                    if step.type == "function_call":
+                        # Insert transaksi
+                        if (step.name == "insert_transaksi"):
+                            try:
+                                response_insert = insert_transaksi(tanggal=tanggal_input, chat_id=chat_id, **step.arguments)
+                                response_insert_telegram = jawabanTelegramInsert(response_insert)
+                            except Exception as e:
+                                print(e)   
+                                update_id = item.get("update_id") # Ambil update_id terakhir
+                                response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
+                                continue
+                            print(f"Function to call: {step.name}")
+                            print(f"Arguments: {step.arguments}")
+                        elif (step.name == "jawaban_telegram_penolakan"):
+                            response_insert_telegram = jawaban_telegram_penolakan(**step.arguments)
+                        
+                        response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_insert_telegram}) # kirimkan pesan kepada user     
+                        if response_chat.status_code == 200: # KEKNYA BAKAL TETAP KE SKIP DEH WALAU ERROR ATAU GMN2?? CASE: JIKA DATA MASUK PUN DAN TELE ERROR, DIA BAKAL TETAP MAJU ANYWAY
+                            update_id = item.get("update_id") # Ambil update_id terakhir
+                        else: # ini harusnya kalau bisa transaksi terakhir dibatalin somehow, # TODO future.
+                            sleep(10)
+                            break
+                        
         except Exception as e:
             print(e)
             sleep(10)

@@ -23,7 +23,7 @@ user_database = os.getenv("USER_DATABASE")
 #             print(f"Error occurred, transaction rolled back: {e}")
            
 # Menginputkan transaksi ke database 
-def insert_transaksi(nama, nominal, catatan, kategori, tanggal, tipe, chat_id, conn=None):
+def insert_transaksi(nama, nominal, kategori, tanggal, tipe, chat_id, catatan=None, conn=None):
     if conn:
         ctx = nullcontext(conn) # Biar bisa passing conn dari luar
     else:
