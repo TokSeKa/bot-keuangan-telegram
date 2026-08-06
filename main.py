@@ -28,22 +28,19 @@ def getUpdatesTelegramBerkala (update_id=None):
     else:
         return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300})
 
-def konteksChatUserTelegram(tanggal_input, text_user, chat_id=None, tanggal_edit=None):
-    if tanggal_input and tanggal_edit:
+def konteksChatUserTelegram(type_chat, tanggal_input, text_user, chat_id=None, tanggal_edit=None):
+    if type_chat == "edited_message": #Edited
         konteks_transaksi_edit = ""
         transaksi_lama = select_transaksi(tanggal_input, chat_id)
         for tl in transaksi_lama:
-            konteks_transaksi_edit = konteks_transaksi_edit + f"""Nama: {tl['nama']}
-Nominal: Rp.{tl['nominal']}
-Kategori: {tl['kategori']}
-Waktu: {tl['tanggal']} 
-Tipe: {tl['tipe']}
-next transaction\n"""
+            konteks_transaksi_edit = konteks_transaksi_edit + f"""Nama: {tl['nama']}\nNominal: Rp.{tl['nominal']}\nKategori: {tl['kategori']}\nWaktu: {tl['tanggal']}\nTipe: {tl['tipe']}\nnext transaction\n"""
         
         print("\nINI ADALAH HASIL SELECT:")
         print(transaksi_lama) #DEBUG
         tipe_konteks_chat = "User melakukan edit pesan dan Ini adalah transaksi lama user berdasarkan timestamp user:\n" + konteks_transaksi_edit + f"\nIni adalah Pesan lama yang di edit User dengan tanggal input {tanggal_input}, dan tanggal edit {tanggal_edit}."
-    elif tanggal_input:
+    elif type_chat == "message":
+        
+        
         tipe_konteks_chat = f"Ini adalah Pesan baru dari User dengan tanggal input {tanggal_input}."
     return tipe_konteks_chat+"\nBerikut pesan user: "+ text_user # Ambil teks user / user tidak mengirimkan text
         
@@ -90,8 +87,12 @@ while True:
                 # Pengecekan 
                 # Bagian mengambil informasi siapa user
                 chat_id = item.get(type_chat).get('chat').get("id") # Ambil id chat user
-                text_user = konteksChatUserTelegram(tanggal_input=tanggal_input, tanggal_edit=tanggal_edit, chat_id=chat_id, text_user=item.get(type_chat).get('text', "User tidak mengirimkan text"))
+                chat_text = item.get(type_chat).get('text', "User tidak mengirimkan text")
+                
+                text_user = konteksChatUserTelegram(tanggal_input=tanggal_input, tanggal_edit=tanggal_edit, chat_id=chat_id, text_user=chat_text)
                 print("PESAN KE USER\n"+text_user+"\nDone\n") #DEBUG
+                
+                
                 # Mengirim promt user ke LLM : gemini
                 try:
                     response_gemini = send_chat_llm(input_user=text_user) # Mengirim ke Gemini
@@ -101,6 +102,8 @@ while True:
                     response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, AI sedang diluar jangkauan! silakan coba lagi nanti!"}) 
                     continue
                 print("Respon gemini: " + response_gemini.fungsi ) #DEBUG
+                
+                
                 # Insert transaksi
                 if (response_gemini.fungsi == "Pencatatan"):
                     try:
@@ -116,9 +119,9 @@ while True:
                     
                 # TODO : BIKIN EDITED MESSAGE DENGAN SISTEM : KALAU DETEKSI EDIT, MAKA CARI DULU DATANYA TRANSAKSI SEBAGAI KONTEKS TAMBAHAN KE GEMINI; JIKA ADA MAKA KIRIMKAN; JIKA GAK ADA MAKA BILANG AJA GAKA ADA; JIKA ADA MAKA KIRIMKAN APA ISINYA;
                 elif response_gemini.fungsi == "Perubahan":
-                    response_insert_telegram = response_gemini.response
+                    response_insert_telegram = response_gemini.response or "Perubahan tidak dilakukan"
                 elif response_gemini.fungsi == "Penolakan":
-                    response_insert_telegram = response_gemini.response
+                    response_insert_telegram = response_gemini.response or "Penolakan tidak dilakukan"
                 else:
                     response_insert_telegram = "Maaf Permintaan Anda belum dapat dilakukan!"
                 
