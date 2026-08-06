@@ -8,8 +8,9 @@ import zoneinfo
 from time import sleep
 
 #Own function
-from utils.database import insert_transaksi, select_transaksi
+from utils.database import insert_transaksi
 from utils.gemini_conn import send_chat_llm
+from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage
 
 # Memuat seluruh variabel .env 
 load_dotenv()
@@ -18,45 +19,11 @@ url_telegram = f"https://api.telegram.org/bot{telegram_bot_api}"
 
 # Fungsi global
 update_id = None
-
-def isPinnedMessage(item, type_chat): # Mengembalikan True jika ada kunci 'pinned_message', False jika tidak ada
-    return bool(item.get(type_chat, {}).get('pinned_message'))
-
-def getUpdatesTelegramBerkala (update_id=None):
-    if update_id:
-        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300, "offset":update_id+1})
-    else:
-        return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300})
-
-def konteksChatUserTelegram(type_chat, tanggal_input, text_user, chat_id=None, tanggal_edit=None):
-    if type_chat == "edited_message": #Edited
-        konteks_transaksi_edit = ""
-        transaksi_lama = select_transaksi(tanggal_input, chat_id)
-        for tl in transaksi_lama:
-            konteks_transaksi_edit = konteks_transaksi_edit + f"""Nama: {tl['nama']}\nNominal: Rp.{tl['nominal']}\nKategori: {tl['kategori']}\nWaktu: {tl['tanggal']}\nTipe: {tl['tipe']}\nnext transaction\n"""
-        
-        print("\nINI ADALAH HASIL SELECT:")
-        print(transaksi_lama) #DEBUG
-        tipe_konteks_chat = "User melakukan edit pesan dan Ini adalah transaksi lama user berdasarkan timestamp user:\n" + konteks_transaksi_edit + f"\nIni adalah Pesan lama yang di edit User dengan tanggal input {tanggal_input}, dan tanggal edit {tanggal_edit}."
-    elif type_chat == "message":
-        
-        
-        tipe_konteks_chat = f"Ini adalah Pesan baru dari User dengan tanggal input {tanggal_input}."
-    return tipe_konteks_chat+"\nBerikut pesan user: "+ text_user # Ambil teks user / user tidak mengirimkan text
-        
-def jawabanTelegramInsert(response_insert):
-    response_waktu_balasan = response_insert['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
-    return f"""Telah tercatat!
-Nama: {response_insert['nama']}
-Nominal: Rp.{response_insert['nominal']}
-Kategori: {response_insert['kategori']}
-Waktu: {response_waktu_balasan} 
-Tipe: {response_insert['tipe']}"""
         
 # Main run
 while True:
     try: # Setiap beberapa waktu, update dengan timeout 5 menit. Setiap kali berhasil, tetapkan offset agar pesan sebelumnya terhapus dari antrian.
-        response = getUpdatesTelegramBerkala(update_id)
+        response = getUpdatesTelegramBerkala(url_telegram=url_telegram, update_id=update_id)
     except RequestException as e:
         print(f"Request error: {str(e).replace(telegram_bot_api, '***')}")
         sleep(10)
@@ -89,7 +56,7 @@ while True:
                 chat_id = item.get(type_chat).get('chat').get("id") # Ambil id chat user
                 chat_text = item.get(type_chat).get('text', "User tidak mengirimkan text")
                 
-                text_user = konteksChatUserTelegram(tanggal_input=tanggal_input, tanggal_edit=tanggal_edit, chat_id=chat_id, text_user=chat_text)
+                text_user = konteksChatUserTelegram(type_chat=type_chat, tanggal_input=tanggal_input, tanggal_edit=tanggal_edit, chat_id=chat_id, text_user=chat_text)
                 print("PESAN KE USER\n"+text_user+"\nDone\n") #DEBUG
                 
                 

@@ -15,3 +15,5 @@
 - mentok: pengen bikin fallback untuk model yang dipanggil gemini, tapi exceptionnya ntah kenapa nyangkut di main, gabisa fallback didalam fungsi. sebab: error exceptionnya salah panggil daritadi ternyata. solusi: cek apa yang terkandung di e nya exception, baru dicocokkan. 
 ### 5 Agustus
 - mentok: Mau bikin testing untuk CRUDS tapi merusak DB saat ini jika salah/rusak. sebab: karena ketika melakukan query apapun, beneran masuk ke database. Solusi: antara bikin DB baru, atau kodenya ganti biar bisa test nyaman, untuk saat ini bikin DB baru lebih mudah.
+### 6 Agustus
+- mentok: Mau ganti dari strucure output ke function calling untuk LLM nya karena lebih terstruktur kedepannya tapi tetap mau ringanin rate limitnya.
