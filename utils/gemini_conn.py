@@ -1,6 +1,4 @@
 from google import genai
-from pydantic import BaseModel, Field
-from typing import Literal, Optional
 
 import os
 from dotenv import load_dotenv
@@ -25,6 +23,8 @@ daftar_fungsi_penutup=["llm_mendapatkan_konteks", "proses_llm_selesai", "jawaban
 
 aturan_routing = f"""KONTEKS WAKTU (PENTING):
 User berada di zona waktu Indonesia (UTC+07:00), namun sistem database menggunakan standar UTC+00:00. Jika user menyebutkan referensi waktu (seperti "hari ini", "kemarin", atau "jam 10 pagi"), anggap waktu tersebut sebagai UTC+07:00. Kamu WAJIB mengonversinya (mengurangi 7 jam) menjadi UTC+00:00 sebelum memasukkannya ke dalam parameter fungsi database.
+
+KONTEKS PERMINTAAN PENAMPILAN DATA: Jika kamu menampilkan data dari database, kamu WAJIB menyebutkan SELURUH datanya satu per satu secara lengkap. JANGAN PERNAH merangkum, memotong, atau melewatkan satu data pun.
 
 ATURAN WAJIB (ROUTING):
 Pada setiap giliranmu merespons, kamu WAJIB mengakhiri giliran dengan memanggil TEPAT SALAH SATU dari {len(daftar_fungsi_penutup)} fungsi penanda berikut:

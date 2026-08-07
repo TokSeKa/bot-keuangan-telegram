@@ -10,6 +10,55 @@ password_postgresql = os.getenv("PASSWORD_POSTGRESQL")
 nama_database = os.getenv("NAMA_DATABASE")
 user_database = os.getenv("USER_DATABASE")
 
+# DB riwayat_percakapan
+
+# Menginputkan riwayat percakapan;
+def insert_riwayat_percakapan(chat_id, identitas, tanggal, pesan, catatan=None, conn=None):
+    if conn:
+        ctx = nullcontext(conn) # Biar bisa passing conn dari luar
+    else:
+        ctx = psycopg.connect(dbname=nama_database, user=user_database, password=password_postgresql)
+    with ctx as conn:
+        try:
+            with conn.transaction():
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(
+                        "INSERT INTO riwayat_percakapan (chat_id, identitas, tanggal, pesan, catatan) VALUES (%s, %s, %s, %s, %s) RETURNING *;",
+                        (chat_id, identitas, tanggal, pesan, catatan))
+                    return cur.fetchone()   
+        except psycopg.Error as e:
+            print(f"Error occurred, transaction rolled back: {e}")
+
+def get_riwayat_percakapan(chat_id, conn=None):
+    sql_1 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal DESC LIMIT 1 OFFSET 4;"
+    sql_2 = "SELECT identitas, tanggal, pesan, catatan FROM riwayat_percakapan WHERE chat_id = %s AND id >= %s ORDER BY tanggal DESC;"
+    sql_3 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal ASC LIMIT 1;"
+    if conn:
+        ctx = nullcontext(conn) # Biar bisa passing conn dari luar
+    else:
+        ctx = psycopg.connect(dbname=nama_database, user=user_database, password=password_postgresql)
+    with ctx as conn:
+        try:
+            with conn.transaction():
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(sql_1,[str(chat_id)])
+                    hasil = cur.fetchone()
+                    if hasil is not None:
+                        parameter_id=hasil["id"]
+                    else:
+                        cur.execute(sql_3,[str(chat_id)])
+                        hasil = cur.fetchone()
+                        if hasil is not None:
+                            parameter_id=hasil["id"]
+                        else: 
+                            return None
+                    cur.execute(sql_2,[str(chat_id), parameter_id])
+                    return cur.fetchall()
+        except psycopg.Error as e:
+            print(f"Error occurred, transaction rolled back: {e}")
+
+# DB TRANSAKSI
+
 # Menginputkan transaksi ke database 
 def insert_transaksi(nama, nominal, kategori, tanggal, tipe, chat_id, catatan=None, conn=None):
     if conn:
@@ -85,7 +134,7 @@ def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, ca
     if kondisi:
         sql += " WHERE " + " AND ".join(kondisi)
         
-    sql += " ORDER BY tanggal DESC LIMIT 5" 
+    sql += " ORDER BY tanggal ASC LIMIT 50" 
     
     print("INI SQL NYA: " + sql)
     print("INI PARAMETER NYA: " + str(parameter))

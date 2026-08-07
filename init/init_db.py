@@ -29,4 +29,14 @@ with psycopg.connect(dbname=nama_database, user=user_database, password=password
                     chat_id VARCHAR(32)
                     );
             """)
+        cur.execute("""
+            CREATE TYPE identitas_riwayat AS ENUM('User', 'Bot');
+            CREATE TABLE riwayat_percakapan (
+                    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+                    chat_id VARCHAR(32),
+                    identitas identitas_riwayat NOT NULL,
+                    tanggal TIMESTAMPTZ NOT NULL,
+                    pesan VARCHAR(255) NOT NULL,
+                    );
+            """)
         conn.commit()
