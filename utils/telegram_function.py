@@ -8,6 +8,15 @@ from utils.database import select_transaksi_by_tanggal_and_chat_id
 def isPinnedMessage(item, type_chat): # Mengembalikan True jika ada kunci 'pinned_message', False jika tidak ada
     return bool(item.get(type_chat, {}).get('pinned_message'))
 
+def isGeminiLupaPenutup(interaction, daftar_fungsi_penutup=["llm_mendapatkan_konteks", "proses_llm_selesai", "jawaban_telegram"]):
+    fungsi_yang_dipanggil = []
+    for step in interaction.steps:
+        if step.type == "function_call":
+            fungsi_yang_dipanggil.append(step.name)
+    ada_penutup = any(penutup in fungsi_yang_dipanggil for penutup in daftar_fungsi_penutup)
+    if not ada_penutup:
+        return True
+    return False
 
 # GETTER SETTER
    
@@ -49,5 +58,5 @@ Kategori: {response_insert['kategori']}
 Waktu: {response_waktu_balasan} 
 Tipe: {response_insert['tipe']}"""    
 
-def jawaban_telegram_penolakan(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
+def jawaban_telegram(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
     return response

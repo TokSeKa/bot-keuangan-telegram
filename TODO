@@ -1,7 +1,8 @@
+## TODO 7 Agustus
+- Ubah Loop LLM sehingga punya pemanggil diri sendiri lagi, pemanggilan selesai;
+
 ## TODO 6 Agustus
 - Ubah struture output menjadi calling function, target awal bisa insert langsung
-
-
 - Jika user edit message, maka dilakukan update
 
 ## TODO
