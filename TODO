@@ -1,3 +1,6 @@
+# TODO 8 Agustus
+- Nambah fungsi edit di database.py, nambah skema biar LLM bisa pakai, pastikan loopnya dinamis tapi aman.
+
 ## TODO 7 Agustus
 - Ubah Loop LLM sehingga punya pemanggil diri sendiri lagi, pemanggilan selesai;
 

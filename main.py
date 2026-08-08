@@ -8,9 +8,9 @@ import json
 from time import sleep
 
 #Own function
-from utils.database import insert_transaksi, search_transaksi_multi, insert_riwayat_percakapan
+from utils.database import insert_transaksi, search_transaksi_multi, insert_riwayat_percakapan, edit_transaksi_by_id
 from utils.gemini_conn import send_chat_llm, daftar_fungsi_penutup
-from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram, isGeminiLupaPenutup
+from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram, isGeminiLupaPenutup, jawabanTelegramEdit
 
 # Memuat seluruh variabel .env 
 load_dotenv()
@@ -69,7 +69,7 @@ while True:
                 
                 chain_thought_llm = True
                 kumpulan_hasil_fungsi = []
-                response_insert_telegram = "Mohon tunggu proses sedang berjalan dilatar belakang!"
+                response_telegram = "Mohon tunggu proses sedang berjalan dilatar belakang!"
                 butuh_gemini = gemini_lupa_penutup_flag = False
                 
                 while chain_thought_llm:
@@ -104,16 +104,18 @@ while True:
                         
                     for step in interaction.steps: # KEKNYA GAK BOLEH PANGGIL DALAM FOR LOOP, BREAK LALU PANGGIL ULANG AJA DEH GEMIINYA
                         if step.type == "function_call":
+                            # Bagian penutup
                             if (step.name == "llm_mendapatkan_konteks"):
                                 butuh_gemini = True
                             elif (step.name == "proses_llm_selesai"):
                                 chain_thought_llm = False
-                                if response_insert_telegram == "Mohon tunggu proses sedang berjalan dilatar belakang!":
-                                    response_insert_telegram = "Permintaan selesai diproses!"
+                                if response_telegram == "Mohon tunggu proses sedang berjalan dilatar belakang!":
+                                    response_telegram = "Permintaan selesai diproses!"
                                 else: continue # Gak perlu balas ke user
                             elif (step.name == "jawaban_telegram"):
-                                response_insert_telegram = jawaban_telegram(**step.arguments)
+                                response_telegram = jawaban_telegram(**step.arguments)
                                 chain_thought_llm = False
+                            # Bagian CRUDS database
                             elif (step.name == "insert_transaksi"):
                                 try:
                                     response_insert = insert_transaksi(tanggal=tanggal_input, chat_id=chat_id, **step.arguments)
@@ -125,7 +127,24 @@ while True:
                                             "result": [{"type": "text", "text": json.dumps(response_insert, default=str)}],
                                         }
                                     )
-                                    response_insert_telegram = jawabanTelegramInsert(response_insert)
+                                    response_telegram = jawabanTelegramInsert(response_insert)
+                                except Exception as e:
+                                    print(e)   
+                                    update_id = item.get("update_id") # Ambil update_id terakhir
+                                    response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
+                                    continue
+                            elif (step.name == "edit_transaksi_by_id"):
+                                try:
+                                    response_edit_data_sebelum, response_edit_data_setelah = edit_transaksi_by_id(chat_id=chat_id, **step.arguments)
+                                    kumpulan_hasil_fungsi.append(
+                                        {
+                                            "type": "function_result",
+                                            "name": step.name,
+                                            "call_id": step.id,
+                                            "result": [{"type": "text", "text_data_sebelum": json.dumps(response_edit_data_sebelum, default=str)}, {"type": "text", "text_data_sesudah": json.dumps(response_edit_data_setelah, default=str)}],
+                                        }
+                                    )
+                                    response_telegram = jawabanTelegramEdit(response_edit_data_sebelum, response_edit_data_setelah)
                                 except Exception as e:
                                     print(e)   
                                     update_id = item.get("update_id") # Ambil update_id terakhir
@@ -150,9 +169,9 @@ while True:
                                     response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
                                     continue
                             
-                            response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_insert_telegram}) # kirimkan pesan kepada user     
+                            response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_telegram}) # kirimkan pesan kepada user     
                             if response_chat.status_code == 200: # KEKNYA BAKAL TETAP KE SKIP DEH WALAU ERROR ATAU GMN2?? CASE: JIKA DATA MASUK PUN DAN TELE ERROR, DIA BAKAL TETAP MAJU ANYWAY
-                                insert_riwayat_percakapan(chat_id=chat_id,identitas="Bot", tanggal=tanggal_input, pesan=response_insert_telegram, catatan=None, conn=None)
+                                insert_riwayat_percakapan(chat_id=chat_id,identitas="Bot", tanggal=tanggal_input, pesan=response_telegram, catatan=None, conn=None)
                                 update_id = item.get("update_id") # Ambil update_id terakhir
                             else: # ini harusnya kalau bisa transaksi terakhir dibatalin somehow, # TODO future.
                                 sleep(10)

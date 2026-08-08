@@ -22,7 +22,7 @@ with psycopg.connect(dbname=nama_database, user=user_database, password=password
                     id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
                     nama VARCHAR(64) NOT NULL,
                     nominal INTEGER NOT NULL,
-                    catatan VARCHAR(255),
+                    catatan TEXT,
                     kategori pilihan_kategori NOT NULL,
                     tanggal TIMESTAMPTZ NOT NULL,
                     tipe pilihan_tipe NOT NULL,

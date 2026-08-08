@@ -4,8 +4,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration
-tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration]
+from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration
+
+tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration]
 gemini_api = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=gemini_api)
 
@@ -33,6 +34,7 @@ Pada setiap giliranmu merespons, kamu WAJIB mengakhiri giliran dengan memanggil 
 3. Panggil '{daftar_fungsi_penutup[2]}' JIKA kamu perlu mengirimkan teks ke Telegram user (misal: menolak permintaan, menjawab obrolan biasa, atau sekadar memberi tahu bahwa tugas pencatatan sudah selesai).
 
 INGAT: Jangan pernah memanggil lebih dari satu fungsi penanda di atas dalam giliran yang sama. Pilih salah satu yang paling sesuai dengan status akhir tindakanmu."""
+
 # Fungsi mengirimkan ke gemini, nantinya text nya di balut dengan promt
 def send_chat_llm(input_user, interaction_id=None):
     for model in pilihan_model:

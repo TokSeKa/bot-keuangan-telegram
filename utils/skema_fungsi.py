@@ -53,6 +53,70 @@ insert_transaksi_declaration = {
     },
 }
 
+prompt_edit_transaksi_by_id = {
+    "id_target": "id_target sebagai target  utama dan tunggal identitas transaksi. Transaksi hanya akan dicari menggunakan ID sehingga kamu perlu melakukan search dahulu ",
+    "nama": "Nama sebagai identitas transaksi yang terjadi.",
+    "nominal": (
+        "Jumlah nominal aktivitas transaksi, sesuaikan dengan konteks aktivitas.\n"
+        "Rules:\n"
+        "1. Konteks transaksi dalam rupiah, kurs rupiah biasanya memakai ribuan rupiah hingga jutaan rupiah, sesuaikan dengan value dari aktivitas yang dimaksud, contoh 34 dalam konteks makanan kemungkinan besar 34000.\n"
+        "2. DILARANG MENGARANG ANGKA YANG TIDAK DISEBUTKAN!\n"
+        "3. JIKA NOMINAL TIDAK JELAS SAAT DIBUTUHKAN, TOLAK DAN MINTA USER MENGKLARIFIKASI ANGKA TERSEBUT.\n"
+        "4. Nominal 0 tidak sah kecuali user secara spesifik meminta ditulis 0.\n"
+        "5. Kurs dalam Rupiah, jika secara spesifik memakai kurs asing maka konversikan secara perkiraan."
+    ),
+    "catatan": (
+        "Catatan tambahan dari pesan user, isi jika diperlukan, misalkan konteks "
+        "dari nama transaksi saja tidak cukup atau user secara spesifik minta "
+        "ada catatan di transaksi tersebut."
+    ),
+    "kategori": (
+        "Kategori transaksi yang terjadi. Jika tidak yakin atau tidak ada "
+        "pada pilihan kategori, masukkan ke kategori Lainnya."
+    ),
+    "tanggal": (
+        "Waktu transaksi."
+        "Keluarkan HANYA format: YYYY-MM-DD HH:MM:SS+00:00 (Contoh: 2026-08-06 14:16:33+00:00)." 
+        "Jangan pakai huruf T pemisah tanggal dan waktu."),
+    "tipe": (
+        "Tipe transaksi yang dilakukan. Normalnya adalah pemasukan, sesuaikan "
+        "dengan konteks; jika ada nuansa mendapatkan uang atau secara spesifik "
+        "user memberikan perintah mencatat pemasukan, maka pilih Pemasukan."
+    ),
+}
+
+edit_transaksi_by_id_declaration = {
+    "type": "function",
+    "name": "edit_transaksi_by_id",
+    "description":  "Mengubah isi data transaksi yang ada didalam database. JIKA user meminta mengubah lebih dari satu transaksi, PANGGIL fungsi ini secara paralel (berulang) sesuai jumlah transaksinya.\n"
+                    "Hanya panggil ini ketika kamu berhasil mendapatkan ID Transaksi yang user maksud. Karena pencarian data transaksi dilakukan satu transaksi dan menggunakan ID Transaksi.\n"
+                    "Hanya berikan parameter untuk mengubah data terhadap bagian yang memang spesifik diminta user untuk di ubah, JANGAN mengubah field yang tidak perlu di ubah!.\n"
+                    "PENTING: Sistem di backend sudah diatur untuk otomatis mengirimkan pesan konfirmasi 'Berhasil edit' dengan format khusus kepada user setelah fungsi ini dijalankan. OLEH KARENA ITU, JANGAN memanggil 'balas_pesan_telegram' untuk memberikan konfirmasi keberhasilan.\n"
+                    "Tutup giliranmu dengan memanggil fungsi 'proses_llm_selesai' (jika sudah tidak ada aksi lain yang harus ditunggu).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "id_target": {"type": "integer", "description": prompt_edit_transaksi_by_id["id_target"]},
+            "nama": {"type": "string", "description": prompt_edit_transaksi_by_id["nama"]},
+            "nominal": {"type": "integer", "description": prompt_edit_transaksi_by_id["nominal"]},
+            "catatan": {"type": "string", "description": prompt_edit_transaksi_by_id["catatan"]},
+            "kategori": {
+                "type": "string", 
+                "enum": ["Lainnya", "Makanan", "Minuman", "Pakaian", "Alat mandi", "Tagihan Rumah", "Transportasi", "Telepon", "Sosial", "Perbaikan", "Kesehatan", "Olahraga", "Hiburan", "Pendidikan"], 
+                "description": prompt_edit_transaksi_by_id["kategori"]
+            },
+            "tanggal": {"type": "string", "description": prompt_edit_transaksi_by_id["tanggal"]},
+            "tipe": {
+                "type": "string", 
+                "enum": ["Pengeluaran", "Pemasukan"], 
+                "description": prompt_edit_transaksi_by_id["tipe"]
+            },
+        },
+        "required": ["id_target"],
+    },
+}
+
+
 prompt_jawaban_telegram = """Isi pesan teks yang akan dikirimkan langsung kepada user.
 ATURAN PENGISIAN PESAN:
 1. Jawaban General: Gunakan untuk menjawab obrolan biasa atau merespons pertanyaan umum dengan informatif.

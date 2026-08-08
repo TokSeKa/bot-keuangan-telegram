@@ -91,5 +91,34 @@ Kategori: {response_insert['kategori']}
 Waktu: {response_waktu_balasan} 
 Tipe: {response_insert['tipe']}"""    
 
+# Jawaban untuk telegram setelah edit
+def jawabanTelegramEdit(data_sebelum, data_sesudah):
+    response_waktu_sebelum = data_sebelum['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+    response_waktu_sesudah = data_sesudah['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+    text_utama=f"""Perubahan data dilakukan! 
+Berikut Data terbaru:
+Nama: {data_sesudah['nama']}
+Nominal: Rp.{data_sesudah['nominal']}
+Kategori: {data_sesudah['kategori']}
+Waktu: {response_waktu_sesudah} 
+Tipe: {data_sesudah['tipe']}
+Catatan: {data_sesudah['catatan']}
+
+Berikut Data sebelumnya:
+Nama: {data_sebelum['nama']}
+Nominal: Rp.{data_sebelum['nominal']}
+Kategori: {data_sebelum['kategori']}
+Waktu: {response_waktu_sebelum} 
+Tipe: {data_sebelum['tipe']}
+Catatan: {data_sebelum['catatan']}
+"""
+    data_berubah = "Data yang berubah adalah"
+    for key in data_sesudah.keys():
+        if data_sebelum[key] != data_sesudah[key]:
+            data_berubah+=f"; {key}"
+    if data_berubah != "\nData yang berubah adalah":
+        text_utama += data_berubah
+    return text_utama
+
 def jawaban_telegram(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
     return response
