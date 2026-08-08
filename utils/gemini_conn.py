@@ -58,3 +58,6 @@ def send_chat_llm(input_user, interaction_id=None):
             raise
     else:
         raise Exception("Semua model tersedia sudah mencapai limit harian!")
+    
+def get_uploaded_file_api(file):
+    return client.files.upload(file=file)

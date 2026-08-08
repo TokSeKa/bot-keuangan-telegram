@@ -1,5 +1,8 @@
 # TODO 8 Agustus
 - Nambah fungsi edit di database.py, nambah skema biar LLM bisa pakai, pastikan loopnya dinamis tapi aman.
+- delete juga kebetulan sama, jadinya selesaikan
+- ternyata keburu semua CRUDS, saatya Input foto/struk
+- ternyata dokumen juga bisa gambar, sekalian cek dokumen/gambar/ banyak media sekali upload;
 
 ## TODO 7 Agustus
 - Ubah Loop LLM sehingga punya pemanggil diri sendiri lagi, pemanggilan selesai;
@@ -11,7 +14,7 @@
 ## TODO
 - [*] PostgreSQL: install, rancang skema BERDASARKAN apa yang Gemini benar-benar hasilkan
 - [*] Simpan transaksi hasil parsing ke database
-- [ ] Baca, edit, hapus transaksi
+- [*] Baca, edit, hapus transaksi
 - [ ] Docker + deploy
 - [*] Gemini keluarkan JSON terstruktur (nominal, kategori, tipe, deskripsi) — bukan teks bebas
 - [*] Validasi JSON punya field yang diharapkan sebelum dipakai; tolak kalau tidak lolos
@@ -19,6 +22,5 @@
       Tes: kirim "beli kopi 20rb" → balasan menunjukkan 20000, makanan, pengeluaran
 
 ## Sengaja ditunda (bukan tertinggal)
-- Input foto/struk — setelah jalur teks jalan dan dipakai seminggu
 - Penanganan error jaringan supaya bot tidak mati sendiri
 - Pengukuran akurasi parsing

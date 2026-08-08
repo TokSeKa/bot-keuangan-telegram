@@ -3,11 +3,21 @@ import zoneinfo
 from utils.database import select_transaksi_by_tanggal_and_chat_id, get_riwayat_percakapan, insert_riwayat_percakapan
 import json
 from datetime import datetime, timezone
+from utils.gemini_conn import get_uploaded_file_api
 # IS FUNCTION
 
 # Fungsi untuk ngecek apakah pesannya bertipe Pinned (akan abaikan jika iya)
 def isPinnedMessage(item, type_chat): # Mengembalikan True jika ada kunci 'pinned_message', False jika tidak ada
-    return bool(item.get(type_chat, {}).get('pinned_message'))
+    return bool(item.get(type_chat, "message").get('pinned_message'))
+
+def isHaveManyImageMessage(item, type_chat): # Mengembalikan True jika ada kunci 'media_group_id', False jika tidak ada
+    return bool(item.get(type_chat, "message").get('media_group_id'))
+
+def isHaveImageMessage(item, type_chat): # Mengembalikan True jika ada kunci 'photo', False jika tidak ada
+    return bool(item.get(type_chat, "message").get('photo'))
+
+def isHaveDocumentMessage(item, type_chat): # Mengembalikan True jika ada kunci 'document', False jika tidak ada
+    return bool(item.get(type_chat, "message").get('document'))
 
 def isGeminiLupaPenutup(interaction, daftar_fungsi_penutup=["llm_mendapatkan_konteks", "proses_llm_selesai", "jawaban_telegram"]):
     fungsi_yang_dipanggil = []
@@ -25,6 +35,21 @@ def getUpdatesTelegramBerkala (url_telegram, update_id=None):
         return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300, "offset":update_id+1})
     else:
         return requests.get(url = url_telegram+"/getUpdates", params={"timeout":300})
+    
+def getGambarTelegram(url_telegram, file_id_gambar):
+    # Minta lokasi file
+    request_path_gambar = requests.get(url=url_telegram + "/getFile", params={"file_id": file_id_gambar}, timeout=30).json()
+    path_gambar = request_path_gambar.get("result", {}).get("file_path")
+    # Download file fisiknya | Sisipkan kata "/file/" tepat setelah "https://api.telegram.org"
+    url_download = url_telegram.replace("api.telegram.org/bot", "api.telegram.org/file/bot") + f"/{path_gambar}"
+    download_gambar = requests.get(url=url_download, timeout=30)
+    nama_file_lokal = "gambar_sementara.jpg"
+    # Simpan sementara
+    with open(nama_file_lokal, "wb") as file:
+        file.write(download_gambar.content)  
+    # Langsung kembalikan sebagai objek yang siap dikirim ke LLM
+    return get_uploaded_file_api(file=nama_file_lokal)
+
 
 # Fungsi untuk mengecek konteks chat user, lalu memberikan sebuah bungkus promt tambahan sebagai konteks tambahan.
 def konteksChatUserTelegram(item):
