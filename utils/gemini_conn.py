@@ -4,9 +4,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration
+from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration
 
-tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration]
+tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration]
 gemini_api = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=gemini_api)
 

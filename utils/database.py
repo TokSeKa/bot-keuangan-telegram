@@ -155,7 +155,7 @@ def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, ca
 # Menginputkan transaksi ke database 
 def edit_transaksi_by_id(chat_id, id_target, nama=None, nominal=None, catatan=None, kategori=None, tanggal=None, tipe=None,  conn=None):
     sql_cek_id_cocok = "SELECT * FROM transaksi WHERE id = %s AND chat_id = %s;"
-    sql_update = "UPDATE transaksi SET nama = COALESCE(%s, nama), nominal = COALESCE(%s, nominal), catatan = COALESCE(%s, catatan), kategori = COALESCE(%s, kategori), tanggal = COALESCE(%s, tanggal), tipe = COALESCE(%s, tipe) WHERE id = %s RETURNING *;"
+    sql_update = "UPDATE transaksi SET nama = COALESCE(%s, nama), nominal = COALESCE(%s, nominal), catatan = COALESCE(%s, catatan), kategori = COALESCE(%s, kategori), tanggal = COALESCE(%s, tanggal), tipe = COALESCE(%s, tipe) WHERE id = %s AND chat_id = %s RETURNING *;"
     if conn:
         ctx = nullcontext(conn) # Biar bisa passing conn dari luar
     else:
@@ -168,11 +168,30 @@ def edit_transaksi_by_id(chat_id, id_target, nama=None, nominal=None, catatan=No
                     cur.execute(sql_cek_id_cocok,[id_target, str(chat_id)])
                     data_lama = cur.fetchone()
                     if data_lama is not None:
-                        cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target))
+                        cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target, chat_id))
                         data_baru = cur.fetchone()
                         return data_lama, data_baru
                     else:
                         return {'error': "ID transaksi bukan milik user!"}# ini harus dicari padanan intinya ID transaksi nya bukan milik user. 
+        except psycopg.Error as e:
+            print(f"Error occurred, transaction rolled back: {e}")
+          
+def delete_transaksi_by_id(chat_id, id_target, conn=None):
+    sql_delete = "DELETE FROM transaksi WHERE id = %s AND chat_id = %s RETURNING *;"
+    if conn:
+        ctx = nullcontext(conn) # Biar bisa passing conn dari luar
+    else:
+        ctx = psycopg.connect(dbname=nama_database, user=user_database, password=password_postgresql)
+    with ctx as conn:
+        try:
+            with conn.transaction():
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(sql_delete, (id_target, str(chat_id)))
+                    data_delete = cur.fetchone()
+                    if data_delete is not None:
+                        return data_delete
+                    else:
+                        return {'error': "ID transaksi bukan milik user! ATAU ID Transaksi tidak ketemu"}# ini harus dicari padanan intinya ID transaksi nya bukan milik user. 
         except psycopg.Error as e:
             print(f"Error occurred, transaction rolled back: {e}")
           

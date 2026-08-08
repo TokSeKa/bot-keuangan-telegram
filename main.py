@@ -8,9 +8,9 @@ import json
 from time import sleep
 
 #Own function
-from utils.database import insert_transaksi, search_transaksi_multi, insert_riwayat_percakapan, edit_transaksi_by_id
+from utils.database import insert_transaksi, search_transaksi_multi, insert_riwayat_percakapan, edit_transaksi_by_id, delete_transaksi_by_id
 from utils.gemini_conn import send_chat_llm, daftar_fungsi_penutup
-from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram, isGeminiLupaPenutup, jawabanTelegramEdit
+from utils.telegram_function import jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, isPinnedMessage, jawaban_telegram, isGeminiLupaPenutup, jawabanTelegramEdit, jawabanTelegramDelete
 
 # Memuat seluruh variabel .env 
 load_dotenv()
@@ -145,6 +145,23 @@ while True:
                                         }
                                     )
                                     response_telegram = jawabanTelegramEdit(response_edit_data_sebelum, response_edit_data_setelah)
+                                except Exception as e:
+                                    print(e)   
+                                    update_id = item.get("update_id") # Ambil update_id terakhir
+                                    response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Database sedang diluar jangkauan! silakan coba lagi nanti!"}) 
+                                    continue
+                            elif (step.name == "delete_transaksi_by_id"):
+                                try:
+                                    response_delete_data = delete_transaksi_by_id(chat_id=chat_id, **step.arguments)
+                                    kumpulan_hasil_fungsi.append(
+                                        {
+                                            "type": "function_result",
+                                            "name": step.name,
+                                            "call_id": step.id,
+                                            "result": [{"type": "text", "text_data_sesudah": json.dumps(response_delete_data, default=str)}],
+                                        }
+                                    )
+                                    response_telegram = jawabanTelegramDelete(response_delete_data)
                                 except Exception as e:
                                     print(e)   
                                     update_id = item.get("update_id") # Ambil update_id terakhir

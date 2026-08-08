@@ -89,7 +89,8 @@ Nama: {response_insert['nama']}
 Nominal: Rp.{response_insert['nominal']}
 Kategori: {response_insert['kategori']}
 Waktu: {response_waktu_balasan} 
-Tipe: {response_insert['tipe']}"""    
+Tipe: {response_insert['tipe']}
+Catatan: {response_insert['catatan']}"""    
 
 # Jawaban untuk telegram setelah edit
 def jawabanTelegramEdit(data_sebelum, data_sesudah):
@@ -119,6 +120,17 @@ Catatan: {data_sebelum['catatan']}
     if data_berubah != "\nData yang berubah adalah":
         text_utama += data_berubah
     return text_utama
+
+# Jawaban untuk telegram setelah delete
+def jawabanTelegramDelete(response_delete):
+    response_waktu_balasan = response_delete['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+    return f"""Telah terhapus!
+Nama: {response_delete['nama']}
+Nominal: Rp.{response_delete['nominal']}
+Kategori: {response_delete['kategori']}
+Waktu: {response_waktu_balasan} 
+Tipe: {response_delete['tipe']}
+Catatan: {response_delete['catatan']}"""    
 
 def jawaban_telegram(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
     return response

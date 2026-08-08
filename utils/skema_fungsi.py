@@ -89,7 +89,7 @@ edit_transaksi_by_id_declaration = {
     "type": "function",
     "name": "edit_transaksi_by_id",
     "description":  "Mengubah isi data transaksi yang ada didalam database. JIKA user meminta mengubah lebih dari satu transaksi, PANGGIL fungsi ini secara paralel (berulang) sesuai jumlah transaksinya.\n"
-                    "Hanya panggil ini ketika kamu berhasil mendapatkan ID Transaksi yang user maksud. Karena pencarian data transaksi dilakukan satu transaksi dan menggunakan ID Transaksi.\n"
+                    "Hanya panggil ini ketika kamu berhasil mendapatkan ID Transaksi yang user maksud. Karena perubahan data transaksi dilakukan satu transaksi dan menggunakan ID Transaksi.\n"
                     "Hanya berikan parameter untuk mengubah data terhadap bagian yang memang spesifik diminta user untuk di ubah, JANGAN mengubah field yang tidak perlu di ubah!.\n"
                     "PENTING: Sistem di backend sudah diatur untuk otomatis mengirimkan pesan konfirmasi 'Berhasil edit' dengan format khusus kepada user setelah fungsi ini dijalankan. OLEH KARENA ITU, JANGAN memanggil 'balas_pesan_telegram' untuk memberikan konfirmasi keberhasilan.\n"
                     "Tutup giliranmu dengan memanggil fungsi 'proses_llm_selesai' (jika sudah tidak ada aksi lain yang harus ditunggu).",
@@ -111,6 +111,23 @@ edit_transaksi_by_id_declaration = {
                 "enum": ["Pengeluaran", "Pemasukan"], 
                 "description": prompt_edit_transaksi_by_id["tipe"]
             },
+        },
+        "required": ["id_target"],
+    },
+}
+
+# Deklarasi Hapus transaksi
+delete_transaksi_by_id_declaration = {
+    "type": "function",
+    "name": "delete_transaksi_by_id",
+    "description":  "Menghapus data transaksi yang ada didalam database. JIKA user meminta menghapus lebih dari satu transaksi, PANGGIL fungsi ini secara paralel (berulang) sesuai jumlah transaksinya.\n"
+                    "Hanya panggil ini ketika kamu berhasil mendapatkan ID Transaksi yang user maksud. Karena penghapusan data transaksi dilakukan satu transaksi dan menggunakan ID Transaksi.\n"
+                    "PENTING: Sistem di backend sudah diatur untuk otomatis mengirimkan pesan konfirmasi 'Berhasil hapus' dengan format khusus kepada user setelah fungsi ini dijalankan. OLEH KARENA ITU, JANGAN memanggil 'balas_pesan_telegram' untuk memberikan konfirmasi keberhasilan.\n"
+                    "Tutup giliranmu dengan memanggil fungsi 'proses_llm_selesai' (jika sudah tidak ada aksi lain yang harus ditunggu).",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "id_target": {"type": "integer", "description": prompt_edit_transaksi_by_id["id_target"]} # Sama aja sih dengan edit deskripsinya.
         },
         "required": ["id_target"],
     },
