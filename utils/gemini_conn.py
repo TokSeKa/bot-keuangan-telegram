@@ -32,7 +32,6 @@ Pada setiap giliranmu merespons, kamu WAJIB mengakhiri giliran dengan memanggil 
 1. Panggil '{daftar_fungsi_penutup[0]}' JIKA kamu sedang memanggil fungsi database (seperti pencarian) dan kamu butuh melihat balasan datanya pada giliran model selanjutnya. (Fungsi ini HARUS dipanggil BERSAMAAN/paralel dengan fungsi databasenya).
 2. Panggil '{daftar_fungsi_penutup[1]}' JIKA permintaan user tuntas dieksekusi (misal: kamu memanggil fungsi insert/hapus) DAN kamu TIDAK perlu mengirimkan pesan ke Telegram user. (PENTING: Fungsi ini HARUS dipanggil BERSAMAAN/paralel dengan fungsi insert/hapus tersebut di dalam satu giliran yang sama).
 3. Panggil '{daftar_fungsi_penutup[2]}' JIKA kamu perlu mengirimkan teks ke Telegram user (misal: menolak permintaan, menjawab obrolan biasa, atau sekadar memberi tahu bahwa tugas pencatatan sudah selesai).
-
 INGAT: Jangan pernah memanggil lebih dari satu fungsi penanda di atas dalam giliran yang sama. Pilih salah satu yang paling sesuai dengan status akhir tindakanmu."""
 
 # Fungsi mengirimkan ke gemini, nantinya text nya di balut dengan promt

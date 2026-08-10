@@ -16,8 +16,8 @@ from utils.database import (
 from utils.telegram_function import (
     jawabanTelegramInsert, getUpdatesTelegramBerkala, konteksChatUserTelegram, 
     isPinnedMessage, jawaban_telegram, isGeminiLupaPenutup, jawabanTelegramEdit, 
-    jawabanTelegramDelete, isHaveImageMessage, isHaveDocumentMessage,
-    getGambarTelegram, isHaveManyImageMessage
+    jawabanTelegramDelete, isAnyFile,
+    getMediaTelegram, isHaveManyFileMessage
 )
 # Memuat seluruh variabel .env 
 load_dotenv()
@@ -36,13 +36,13 @@ while True:
         sleep(10)
         continue
     print(response.json()) #DEBUG
-    for item in response.json().get("result"):
-        update_id = item.get("update_id")
+    # for item in response.json().get("result"):
+    #     update_id = item.get("update_id")
     
     # continue #untuk cek json
     
     # Variabel sementara gambar
-    media_group_id = gambar_upload_terbaru = file_id_gambar_terbaru = path_gambar_terbaru = None
+    media_group_id = file_id_media_terbaru = text_user = caption = None
     list_input = []
     
     if response.status_code == 200:
@@ -51,44 +51,10 @@ while True:
             for index, item in enumerate(data_result): # Result json itu isinya list dictionary || pake enumerate biar bisa ngintip item berikutnya, ngakalin gambar jamak yg gak tau kapan selesainya.
                 # Check apa tipe pesannya:
                 if "message" in item: # Jika pesan baru
+                    type_chat = "message"
                     if isPinnedMessage(item, "message"):# Pinned message, abaikan
                         update_id = item.get("update_id") # Ambil update_id terakhir
                         continue
-                    # Jika ada banyak gambar maka lanjut
-                    
-                    if isHaveDocumentMessage(item, "message") or isHaveImageMessage(item, "message"):
-                        if isHaveDocumentMessage(item, "message"): # kalau dokumen
-                            mime_type = item.get("message").get('document').get('mime_type')
-                            if(not mime_type.startswith("image/")): #cek bukan gambar
-                                update_id = item.get("update_id") # Ambil update_id terakhir
-                                response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":"Maaf, Dokumen yang Kamu upload bukan gambar! Tolong hanya mengirim gambar kepada AI ya!"}) 
-                                continue # skip karena bukan gambar
-                            else:
-                                file_id_gambar_terbaru = item.get("message").get("document").get("file_id")
-                        elif isHaveImageMessage(item, "message"): # kalau gambar biasa
-                            file_id_gambar_terbaru = item.get("message").get('photo')[-1]["file_id"]
-                        
-                        # Bagian masukkan ke input
-                        uploaded_file = getGambarTelegram(url_telegram= f"https://api.telegram.org/bot{telegram_bot_api}", file_id_gambar=file_id_gambar_terbaru)
-                        gambar_untuk_input_gemini = {"type": "image", "uri": uploaded_file.uri, "mime_type": uploaded_file.mime_type}
-                        list_input.append(gambar_untuk_input_gemini) 
-                        # cek caption, jika ada di append ke input
-                        caption = item.get("message").get('caption')
-                        if caption:
-                            teks_caption_gambar = {"type": "text", "text": "Ini caption gambar: "+caption}
-                            list_input.append(teks_caption_gambar)  
-                            
-                        if isHaveManyImageMessage(item, "message"): # Jika uploadnya jamak
-                            # Jika gak ada gambar, simpan ke jangkar, add ke dalam list, dan cek apakah item berikutnya juga ada gambar, dan jika ada apakah gambarnya sama atau tidak.
-                            if media_group_id is None: 
-                                media_group_id = item.get("message").get('media_group_id') # Jika gambar pertama kali upload, simpan jangkarnya.
-                                
-                            # cek gambar berikutnya masih ada, dan group id nya masih sama, jika sama skip dan langsung ke gambar berikutnya aja
-                            if index + 1 < len(data_result): # selama data masih ada kedepan
-                                item_selanjutnya = data_result[index + 1] # cek data berikutnya
-                                if (isHaveImageMessage(item_selanjutnya, "message") or isHaveDocumentMessage(item_selanjutnya, "message")) and (media_group_id == item_selanjutnya.get("message").get('media_group_id')):
-                                    continue # skip semua, langsung lanjut berikutnya aja karena masih di satu upload yang sama        
-                            
                     tanggal_input = datetime.fromtimestamp(item.get("message").get('date'), tz=timezone.utc)
                 elif "edited_message" in item: # Rencana: Jika edit maka pindahkan ke konteks edit yang pernah ada
                     tanggal_input = datetime.fromtimestamp(item.get("edited_message").get('edit_date'), tz=timezone.utc)
@@ -96,11 +62,36 @@ while True:
                     print("Ini beda? coba cek") #DEBUG
                     continue # sementara belum tahu
                 
-                chat_id, text_user = konteksChatUserTelegram(item)
+                # Bagian masukkan media ke input
+                if(isAnyFile(item=item, type_chat=type_chat)):
+                    uploaded_file = getMediaTelegram(item=item, type_chat=type_chat, url_telegram= f"https://api.telegram.org/bot{telegram_bot_api}")
+                    if uploaded_file is not None: 
+                        if isinstance(uploaded_file, str):
+                            requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":uploaded_file}) 
+                        else:
+                            gambar_untuk_input_gemini = uploaded_file
+                            list_input.append(gambar_untuk_input_gemini)
+                            
+                        # cek caption. kalau ada, masuk var, nanti passing ke konteks Chat, sebagai pengganti text;
+                        caption = item.get(type_chat).get('caption') or caption
+                        
+                        if isHaveManyFileMessage(item=item, type_chat=type_chat): # Jika uploadnya jamak
+                            # Jika gak ada gambar, simpan ke jangkar, add ke dalam list, dan cek apakah item berikutnya juga ada gambar, dan jika ada apakah gambarnya sama atau tidak.
+                            if media_group_id is None: 
+                                media_group_id = item.get(type_chat).get('media_group_id') # Jika gambar pertama kali upload, simpan jangkarnya.
+                                
+                            # cek gambar berikutnya masih ada, dan group id nya masih sama, jika sama skip dan langsung ke gambar berikutnya aja
+                            if index + 1 < len(data_result): # selama data masih ada kedepan
+                                item_selanjutnya = data_result[index + 1] # cek data berikutnya
+                                if (isAnyFile(item_selanjutnya, type_chat)):
+                                    continue # skip semua, langsung lanjut berikutnya aja karena masih di satu upload yang sama     
+                
+                chat_id, text_user = konteksChatUserTelegram(item=item, caption=caption)
                 list_input.append({"type": "text", "text": text_user})
                 # print("PESAN KE LLM:\n"+text_user+"\n================================\n") #DEBUG
                 # print("PESAN KE LLM:\n"+str(list_input)+"\n================================\n") #DEBUG
                 
+                text_user = caption = None # asumsikan dalam satu loop udah beda user, mending reset setelah pakai;
                 try:
                     interaction = send_chat_llm(input_user=list_input) # Mengirim ke Gemini
                 except Exception as e:
@@ -130,7 +121,7 @@ while True:
                         try:
                             if gemini_lupa_penutup_flag:
                                 gemini_lupa_penutup_flag = False
-                                teks_lupa_penutup = "Kamu harus memakai fungsi penutup di akhir fungsi pararel!"
+                                teks_lupa_penutup = "Kamu harus memakai fungsi penutup di akhir fungsi pararel! JIKA KAMU DIBERIKAN PESAAN INI, BERARTI FUNGSI SEBELUMNYA BELUM DI PROSES, ULANGI KEMBALI!"
                                 interaction = send_chat_llm(input_user=teks_lupa_penutup,interaction_id=interaction.id)
                             else:
                                 interaction = send_chat_llm(input_user=kumpulan_hasil_fungsi,interaction_id=interaction.id)
@@ -152,7 +143,6 @@ while True:
                     
                     butuh_gemini = gemini_lupa_penutup_flag = isGeminiLupaPenutup(interaction=interaction, daftar_fungsi_penutup=daftar_fungsi_penutup)
                     if gemini_lupa_penutup_flag: continue
-                        
                         
                     for step in interaction.steps: # KEKNYA GAK BOLEH PANGGIL DALAM FOR LOOP, BREAK LALU PANGGIL ULANG AJA DEH GEMIINYA
                         if step.type == "function_call":
@@ -240,6 +230,7 @@ while True:
                             
                             response_chat = requests.get(url = url_telegram+'/sendMessage', params={"chat_id": chat_id, "text":response_telegram}) # kirimkan pesan kepada user     
                             if response_chat.status_code == 200: # KEKNYA BAKAL TETAP KE SKIP DEH WALAU ERROR ATAU GMN2?? CASE: JIKA DATA MASUK PUN DAN TELE ERROR, DIA BAKAL TETAP MAJU ANYWAY
+                                print("\n:masuk ke riwayat\n:")
                                 insert_riwayat_percakapan(chat_id=chat_id,identitas="Bot", tanggal=tanggal_input, pesan=response_telegram, catatan=None, conn=None)
                                 update_id = item.get("update_id") # Ambil update_id terakhir
                             else: # ini harusnya kalau bisa transaksi terakhir dibatalin somehow, # TODO future.

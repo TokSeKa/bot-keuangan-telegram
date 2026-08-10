@@ -31,7 +31,7 @@ def insert_riwayat_percakapan(chat_id, identitas, tanggal, pesan, catatan=None, 
 
 def get_riwayat_percakapan(chat_id, conn=None):
     sql_1 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal DESC LIMIT 1 OFFSET 4;"
-    sql_2 = "SELECT identitas, tanggal, pesan, catatan FROM riwayat_percakapan WHERE chat_id = %s AND id >= %s ORDER BY tanggal DESC;"
+    sql_2 = "SELECT * FROM riwayat_percakapan WHERE chat_id = %s AND id >= %s ORDER BY tanggal DESC;"
     sql_3 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal ASC LIMIT 1;"
     if conn:
         ctx = nullcontext(conn) # Biar bisa passing conn dari luar
@@ -168,7 +168,7 @@ def edit_transaksi_by_id(chat_id, id_target, nama=None, nominal=None, catatan=No
                     cur.execute(sql_cek_id_cocok,[id_target, str(chat_id)])
                     data_lama = cur.fetchone()
                     if data_lama is not None:
-                        cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target, chat_id))
+                        cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target, str(chat_id)))
                         data_baru = cur.fetchone()
                         return data_lama, data_baru
                     else:
