@@ -36,7 +36,7 @@ with psycopg.connect(dbname=nama_database, user=user_database, password=password
                     chat_id VARCHAR(32),
                     identitas identitas_riwayat NOT NULL,
                     tanggal TIMESTAMPTZ NOT NULL,
-                    pesan VARCHAR(255) NOT NULL,
+                    pesan TEXT NOT NULL,
                     );
             """)
         conn.commit()
