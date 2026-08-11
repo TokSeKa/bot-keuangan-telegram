@@ -1,14 +1,12 @@
 # IMPORT PYTHON
 import requests
-from requests import RequestException
-import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone
-import json
+import json, os, random
 from time import sleep
 
 #Own function
-from utils.gemini_conn import send_chat_llm, daftar_fungsi_penutup, get_uploaded_file_api
+from utils.gemini_conn import send_chat_llm, daftar_fungsi_penutup
 from utils.database import (
     insert_transaksi, search_transaksi_multi, insert_riwayat_percakapan, 
     edit_transaksi_by_id, delete_transaksi_by_id
@@ -27,19 +25,28 @@ url_telegram = f"https://api.telegram.org/bot{telegram_bot_api}"
 # Fungsi global
 update_id = None
 
+# Text loading
+loading_text = [
+  "Tunggu sebentar ya...", "Beri aku waktu sejenak...", "Sedang membuka catatanmu...", "Mencari jawaban yang pas...", "Sebentar, lagi disiapkan...", "Sabar ya, hampir selesai...", "Sedang memastikan semuanya beres...",
+  "Tunggu ya, lagi aku urus...", "Sebentar ya! lagi ku proses!", "bentar yah :3", "okeh! sebentar boss!", "sabar~ lagi diproses!", "santai, aku kerjain!", "jangan buru-buru, aku kerjain kok!",
+  "sabar bos! on the way!", "huft huft huft!", "eh, kerja?, oke bentar!", "5 men-, eh~ canda~, bentar ya!", "hmmm, bentar... ini menarik...", "kalau kamu gak buru buru bisa tinggalin aku kok, aku lagi proses~", "aku lagi proses~ nanti ku chat ya~",
+  "yeay~ kerja! OTW!", "kamu nyuruh aku kerja? baiklah...", "kerja! kerja! kerja!", "hosh..hosh..hosh.. bentar ya!", "sat sit sut, aku siap bantu! mohon ditunggu!", "haittt! shap! otw kerjain requestmu!", "dua tiga, aku kerja~",
+  "OTW (gak 5 menit kok!)", "trust me, its working behind~", "eh eh? bentar ya~ aku kerjain~", "Hoammmm... iyaaaa bentar yaaaa", "Okeh, sebentar bos..."
+]
+
 # Main run
 while True:
     try: # Setiap beberapa waktu, update dengan timeout 5 menit. Setiap kali berhasil, tetapkan offset agar pesan sebelumnya terhapus dari antrian.
         response = getUpdatesTelegramBerkala(url_telegram=url_telegram, update_id=update_id)
-    except RequestException as e:
+    except requests.RequestException as e:
         print(f"Request error: {str(e).replace(telegram_bot_api, '***')}")
         sleep(10)
         continue
     print(response.json()) #DEBUG
-    for item in response.json().get("result"):
-        update_id = item.get("update_id")
+    # for item in response.json().get("result"):
+    #     update_id = item.get("update_id")
     
-    # continue #untuk cek json
+    # continue #untuk cek json DEBUG
     
     # Variabel sementara gambar
     media_group_id = gambar_upload_terbaru = file_id_gambar_terbaru = path_gambar_terbaru = None
@@ -98,11 +105,17 @@ while True:
                 
                 chat_id, text_user = konteksChatUserTelegram(item)
                 list_input.append({"type": "text", "text": text_user})
-                # print("PESAN KE LLM:\n"+text_user+"\n================================\n") #DEBUG
+                print("PESAN KE LLM:\n"+text_user+"\n================================\n") #DEBUG
                 # print("PESAN KE LLM:\n"+str(list_input)+"\n================================\n") #DEBUG
                 
                 try:
                     interaction = send_chat_llm(input_user=list_input) # Mengirim ke Gemini
+                    # Mengakses data penggunaan token dari response DEBUG
+                    print("\n=====================================================")
+                    print("Token Input:", interaction.usage.total_input_tokens)
+                    print("Token Output:", interaction.usage.total_output_tokens)
+                    print("Total keseluruhan token:", interaction.usage.total_tokens)
+                    print("\n=====================================================")
                 except Exception as e:
                     print(e)
                     update_id = item.get("update_id") # Ambil update_id terakhir
@@ -121,7 +134,7 @@ while True:
                 
                 chain_thought_llm = True
                 kumpulan_hasil_fungsi = []
-                response_telegram = "Mohon tunggu proses sedang berjalan dilatar belakang!"
+                response_telegram = random.choice(loading_text)
                 butuh_gemini = gemini_lupa_penutup_flag = False
                 
                 while chain_thought_llm:
@@ -132,8 +145,20 @@ while True:
                                 gemini_lupa_penutup_flag = False
                                 teks_lupa_penutup = "Kamu harus memakai fungsi penutup di akhir fungsi pararel!"
                                 interaction = send_chat_llm(input_user=teks_lupa_penutup,interaction_id=interaction.id)
+                                # Mengakses data penggunaan token dari response DEBUG
+                                print("\n=====================================================")
+                                print("Token Input:", interaction.usage.total_input_tokens)
+                                print("Token Output:", interaction.usage.total_output_tokens)
+                                print("Total keseluruhan token:", interaction.usage.total_tokens)
+                                print("\n=====================================================")
                             else:
                                 interaction = send_chat_llm(input_user=kumpulan_hasil_fungsi,interaction_id=interaction.id)
+                                # Mengakses data penggunaan token dari response DEBUG
+                                print("\n=====================================================")
+                                print("Token Input:", interaction.usage.total_input_tokens)
+                                print("Token Output:", interaction.usage.total_output_tokens)
+                                print("Total keseluruhan token:", interaction.usage.total_tokens)
+                                print("\n=====================================================")
                             for step in interaction.steps: #DEBUG
                                 # 1. Print tipe step-nya dulu biar ketahuan ini step apa
                                 print(f"2Tipe Step: {step.type}")
@@ -161,7 +186,7 @@ while True:
                                 butuh_gemini = True
                             elif (step.name == "proses_llm_selesai"):
                                 chain_thought_llm = False
-                                if response_telegram == "Mohon tunggu proses sedang berjalan dilatar belakang!":
+                                if response_telegram == random.choice(loading_text):
                                     response_telegram = "Permintaan selesai diproses!"
                                 else: continue # Gak perlu balas ke user
                             elif (step.name == "jawaban_telegram"):
@@ -245,7 +270,6 @@ while True:
                             else: # ini harusnya kalau bisa transaksi terakhir dibatalin somehow, # TODO future.
                                 sleep(10)
                                 break
-                        
         except Exception as e:
             print(e)
             sleep(10)

@@ -30,7 +30,7 @@ def insert_riwayat_percakapan(chat_id, identitas, tanggal, pesan, catatan=None, 
             print(f"Error occurred, transaction rolled back: {e}")
 
 def get_riwayat_percakapan(chat_id, conn=None):
-    sql_1 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal DESC LIMIT 1 OFFSET 4;"
+    sql_1 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal DESC LIMIT 1 OFFSET 2;"
     sql_2 = "SELECT identitas, tanggal, pesan, catatan FROM riwayat_percakapan WHERE chat_id = %s AND id >= %s ORDER BY tanggal DESC;"
     sql_3 = "SELECT id FROM riwayat_percakapan WHERE chat_id = %s AND identitas = 'User' ORDER BY tanggal ASC LIMIT 1;"
     if conn:
