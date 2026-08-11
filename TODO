@@ -4,6 +4,25 @@
 - dan kalau ada media apapun, maka bisa auto append ke input; jadi biarlah konteksnya gemuk, 
 - (feedback dari kelly) kasih saldo, kasih tampilan yang cute/semi formal, jangan kaku kali; emoticon kalau minat (kaga); tampilan warna warni; loading text ganti yg lebih warming; intinya, lebih bersahabat, dan mulai bagusin front end, sesuatu yg mmg blm dilakuin;
 
+# TODO Hosting + multi user:
+Perlu dibikin set up biar bisa hosting + pembayaran;
+- idealnya memakai webhook untuk nerima chat user;
+- idealnya kode bagian nerima banyak input media sekaligus di rombak dan di cek ulang gmn alurnya, karena medianya akan beresiko di olah berbeda promt ketika asingkronus
+- idelanya kode jadi asyc dan di migrasi makai fast api aja
+- idealnya postgresql nya juga pooling, banyak workker, maybe 10? kurang lebih segitu.
+- idealnya hosting backend maybe di fastapihosting atau apalah, lupa linknya, intinya hosting dari mereka sendiri, lumayan untuk testing awal.
+- idealnya kode bagian telegramnya lebih modular drpd saat ini, tapi gpp untuk awal2, nanti harus rapikan tapi.
+- idealnya hosting postgre mungkin di supabase aja untuk free
+- idealnya pembayaran midtransnya kupake aja untuk botku
+- odealnya ada tabel baru: user, kategori kustom user, pilihan mau pake history chat atau enggak, batas token untuk user (karena kalau enterpreise kemungkinan besar bakal repot kalau no limit)
+- idealnya aku belajar tombol tombol dan dsb untuk bagian konfigurasi user, biar mereka bisa tentuin gaya mereka sendiri
+- idealnya aku kasih free trial, atau free use, kek maybe 1 transaksi atau 2 per hari untuk satu user, hanya bisa CRUDS teks tentunya.
+- idealnya aku bikin sebuah fungsi untuk menampilkan data tanpa perlu bantuan bot yang bisa dipanggil pakai command, dan fungsi2 lain juga untuk jaga2 user mau hemat token?
+- idealnya aku nawarin untuk di export data semuanya ke user dalam bentuk xlxx atau teks aja bebas sih; untuk user free sih sengaja doang, biar mereka kecantol.
+- [ ] Docker + deploy
+- Penanganan error jaringan supaya bot tidak mati sendiri
+- Pengukuran akurasi parsing
+
 # TODO Masalah promting;
 promting ternyata signifikan untuk beberapa cost, target perubahan biar lebih hemat token:
 1. Perampingan beberapa promt, targetnya yang awalnya promtnya super boros dan bertele tele bisa menjadi sangat singkat.
@@ -52,12 +71,7 @@ promting ternyata signifikan untuk beberapa cost, target perubahan biar lebih he
 - [*] PostgreSQL: install, rancang skema BERDASARKAN apa yang Gemini benar-benar hasilkan
 - [*] Simpan transaksi hasil parsing ke database
 - [*] Baca, edit, hapus transaksi
-- [ ] Docker + deploy
 - [*] Gemini keluarkan JSON terstruktur (nominal, kategori, tipe, deskripsi) — bukan teks bebas
 - [*] Validasi JSON punya field yang diharapkan sebelum dipakai; tolak kalau tidak lolos
 - [*] Balas ke Telegram dengan konfirmasi yang disusun dari data hasil parsing
       Tes: kirim "beli kopi 20rb" → balasan menunjukkan 20000, makanan, pengeluaran
-
-## Sengaja ditunda (bukan tertinggal)
-- Penanganan error jaringan supaya bot tidak mati sendiri
-- Pengukuran akurasi parsing
