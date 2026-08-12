@@ -11,8 +11,8 @@ gemini_api = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=gemini_api)
 
 pilihan_model = [ 
-    "gemini-3.5-flash-lite", # 500 RPD
     "gemini-3.1-flash-lite", # 500 RPD
+    "gemini-3.5-flash-lite", # 500 RPD
     "gemini-3-flash", # 20 RPD
     "gemini-3.5-flash", # 20 RPD
     "gemini-3.6-flash", # 20 RPD
