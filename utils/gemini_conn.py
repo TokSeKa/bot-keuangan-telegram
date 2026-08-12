@@ -22,17 +22,30 @@ pilihan_model = [
 
 daftar_fungsi_penutup=["llm_mendapatkan_konteks", "proses_llm_selesai", "jawaban_telegram"]
 
-aturan_routing = f"""KONTEKS WAKTU (PENTING):
-User berada di zona waktu Indonesia (UTC+07:00), namun sistem database menggunakan standar UTC+00:00. Jika user menyebutkan referensi waktu (seperti "hari ini", "kemarin", atau "jam 10 pagi"), anggap waktu tersebut sebagai UTC+07:00. Kamu WAJIB mengonversinya (mengurangi 7 jam) menjadi UTC+00:00 sebelum memasukkannya ke dalam parameter fungsi database.
+tools_tier1 = [
+    insert_transaksi_declaration,
+    jawaban_telegram_declaration,
+    search_transaksi_multi_declaration,
+    proses_llm_selesai_declaration,
+    llm_mendapatkan_konteks_declaration
+]
 
-KONTEKS PERMINTAAN PENAMPILAN DATA: Jika kamu menampilkan data dari database, kamu WAJIB menyebutkan SELURUH datanya satu per satu secara lengkap. JANGAN PERNAH merangkum, memotong, atau melewatkan satu data pun.
+tools_tier2 = [
+    edit_transaksi_by_id_declaration,
+    delete_transaksi_by_id_declaration,
+    jawaban_telegram_declaration,
+    proses_llm_selesai_declaration
+]
 
-ATURAN WAJIB (ROUTING):
-Pada setiap giliranmu merespons, kamu WAJIB mengakhiri giliran dengan memanggil TEPAT SALAH SATU dari {len(daftar_fungsi_penutup)} fungsi penanda berikut:
-1. Panggil '{daftar_fungsi_penutup[0]}' JIKA kamu sedang memanggil fungsi database (seperti pencarian) dan kamu butuh melihat balasan datanya pada giliran model selanjutnya. (Fungsi ini HARUS dipanggil BERSAMAAN/paralel dengan fungsi databasenya).
-2. Panggil '{daftar_fungsi_penutup[1]}' JIKA permintaan user tuntas dieksekusi (misal: kamu memanggil fungsi insert/hapus) DAN kamu TIDAK perlu mengirimkan pesan ke Telegram user. (PENTING: Fungsi ini HARUS dipanggil BERSAMAAN/paralel dengan fungsi insert/hapus tersebut di dalam satu giliran yang sama).
-3. Panggil '{daftar_fungsi_penutup[2]}' JIKA kamu perlu mengirimkan teks ke Telegram user (misal: menolak permintaan, menjawab obrolan biasa, atau sekadar memberi tahu bahwa tugas pencatatan sudah selesai).
-INGAT: Jangan pernah memanggil lebih dari satu fungsi penanda di atas dalam giliran yang sama. Pilih salah satu yang paling sesuai dengan status akhir tindakanmu."""
+aturan_routing = """KONTEKS WAKTU: Waktu user UTC+7. Database memakai UTC+0. Konversi kurangi 7 jam sebelum memasukkan ke parameter fungsi.
+TAMPILAN DATA: Tampilkan SEMUA data satu per satu, JANGAN dirangkum.
+
+ATURAN AKHIR GILIRAN (WAJIB):
+Setiap giliran harus diakhiri dengan memanggil TEPAT SATU fungsi penanda berikut:
+- llm_mendapatkan_konteks : panggil BERSAMAAN dengan fungsi database (misal search) jika kamu perlu melihat hasilnya di giliran selanjutnya.
+- proses_llm_selesai      : panggil jika aksi telah selesai dan kamu TIDAK perlu mengirim pesan teks ke user (backend akan otomatis kirim konfirmasi).
+- jawaban_telegram        : panggil jika kamu perlu mengirim teks langsung ke user (obrolan, penolakan, klarifikasi, atau notifikasi manual).
+JANGAN panggil lebih dari satu fungsi penanda dalam giliran yang sama."""
 
 # Fungsi mengirimkan ke gemini, nantinya text nya di balut dengan promt
 def send_chat_llm(input_user, interaction_id=None):
