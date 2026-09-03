@@ -78,7 +78,7 @@ def getMediaTelegram(item, type_chat, url_telegram):
 
 
 # Fungsi untuk mengecek konteks chat user, lalu memberikan sebuah bungkus promt tambahan sebagai konteks tambahan.
-def konteksChatUserTelegram(item, caption=None):
+def konteksChatUserTelegram(item, chat_id, caption=None):
     type_chat = tanggal_input = tanggal_edit = None
     hasil_akhir = ""
 
@@ -88,8 +88,6 @@ def konteksChatUserTelegram(item, caption=None):
         type_chat = "message"
     else:
         return None, "Format pesan tidak didukung/dikenali."
-
-    chat_id = item.get(type_chat).get('chat').get("id")
 
     # Susun Riwayat Chat di PALING ATAS (Biar AI baca masa lalu dulu)
     # riwayat_percakapan = get_riwayat_percakapan(chat_id=chat_id)
@@ -129,7 +127,7 @@ def konteksChatUserTelegram(item, caption=None):
     insert_riwayat_percakapan(chat_id=chat_id, identitas="User", tanggal=tanggal_pesan, pesan=text_user)
     hasil_akhir += f"\nBerikut pesan user: {text_user}"
     
-    return chat_id, hasil_akhir
+    return hasil_akhir
 
 # Bagian penampilan data
 
@@ -238,3 +236,10 @@ Catatan: {response_delete['catatan']}"""
 
 def jawaban_telegram(response="Maaf permintaan Anda ditolak system, coba lagi beberapa saat lagi. Jika tetap tidak bisa, berikan pesan lain."):
     return response
+
+def jawabanTelegramSearch(response_search):
+    hasil_text = []
+    for response in response_search:
+        response_waktu_balasan = response['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+        hasil_text.append(f"""Nama: {response['nama']} | Nominal: Rp.{response['nominal']} | Kategori: {response['kategori']} | Waktu: {response_waktu_balasan} | Tipe: {response['tipe']} | Catatan: {response['catatan']}\n\n""")
+        return "\n\n".join(hasil_text)   
