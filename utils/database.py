@@ -60,7 +60,7 @@ def get_riwayat_percakapan(chat_id, conn=None):
 # DB TRANSAKSI
 
 # Menginputkan transaksi ke database 
-def insert_transaksi(nama, nominal, kategori, tanggal, tipe, chat_id, catatan=None, conn=None):
+def insert_transaksi(daftar_transaksi, chat_id, tanggal, conn=None):
     if conn:
         ctx = nullcontext(conn) # Biar bisa passing conn dari luar
     else:
@@ -69,13 +69,23 @@ def insert_transaksi(nama, nominal, kategori, tanggal, tipe, chat_id, catatan=No
         try:
             with conn.transaction():
                 with conn.cursor(row_factory=dict_row) as cur:
-                    cur.execute(
-                        "INSERT INTO transaksi (nama, nominal, catatan, kategori, tanggal, tipe, chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *;",
-                        (nama, nominal, catatan, kategori, tanggal, tipe, chat_id))
-                    return cur.fetchone()   
+                    hasil_insert_semua = []
+                    for trx in daftar_transaksi:
+                        nama = trx.get('nama')
+                        nominal = trx.get('nominal')
+                        kategori = trx.get('kategori')
+                        tipe = trx.get('tipe')
+                        catatan = trx.get('catatan')
+                        cur.execute(
+                            "INSERT INTO transaksi (nama, nominal, catatan, kategori, tanggal, tipe, chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *;",
+                            (nama, nominal, catatan, kategori, tanggal, tipe, chat_id)
+                        )
+                        hasil_insert_semua.append(cur.fetchone())
+                return hasil_insert_semua
         except psycopg.Error as e:
             print(f"Error occurred, transaction rolled back: {e}")
-            
+            return None
+        
 # Mencari transaksi ke database berdasarkan timestamp + id chat user
 # Output harapan: Memberikan konteks kepada LLM
 def select_transaksi_by_tanggal_and_chat_id(tanggal, chat_id, conn=None):

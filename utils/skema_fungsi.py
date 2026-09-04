@@ -1,39 +1,49 @@
 insert_transaksi_declaration = {
     "type": "function",
     "name": "insert_transaksi",
-    "description": "Menyimpan transaksi baru. Jika user minta >1, panggil secara paralel.",
+    "description": "Menyimpan satu atau banyak transaksi baru sekaligus.",
     "parameters": {
         "type": "object",
         "properties": {
-            "nama": {
-                "type": "string", 
-                "description": "Nama transaksi."
-            },
-            "nominal": {
-                "type": "integer",
-                "description": "Nominal dalam Rupiah. Asumsikan angka kecil sbg ribuan (34 → 34000). Minta klarifikasi jika tidak disebutkan. Nominal 0 tidak sah kecuali diminta."
-            },
-            "catatan": {
-                "type": "string", 
-                "description": "Catatan tambahan (opsional)."
-            },
-            "kategori": {
-                "type": "string",
-                "enum": [
-                    "Lainnya", "Makanan", "Minuman", "Pakaian", 
-                    "Alat mandi", "Tagihan Rumah", "Transportasi", 
-                    "Telepon", "Sosial", "Perbaikan", "Kesehatan", 
-                    "Olahraga", "Hiburan", "Pendidikan"
-                ], 
-                "description": "Kategori transaksi. Default 'Lainnya' jika tidak yakin."
-            },
-            "tipe": {
-                "type": "string",
-                "enum": ["Pengeluaran", "Pemasukan"],
-                "description": "Tipe transaksi. Sesuaikan konteks; jika user mendapat uang pilih Pemasukan."
+            "daftar_transaksi": {
+                "type": "array",
+                "description": "Daftar transaksi yang akan disimpan.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "nama": {
+                            "type": "string", 
+                            "description": "Nama transaksi."
+                        },
+                        "nominal": {
+                            "type": "integer",
+                            "description": "Nominal dalam Rupiah. Asumsikan angka kecil sbg ribuan (34 ke 34000). Minta klarifikasi jika tidak disebutkan. Nominal 0 tidak sah kecuali diminta."
+                        },
+                        "catatan": {
+                            "type": "string", 
+                            "description": "Catatan tambahan (opsional)."
+                        },
+                        "kategori": {
+                            "type": "string",
+                            "enum": [
+                                "Lainnya", "Makanan", "Minuman", "Pakaian", 
+                                "Alat mandi", "Tagihan Rumah", "Transportasi", 
+                                "Telepon", "Sosial", "Perbaikan", "Kesehatan", 
+                                "Olahraga", "Hiburan", "Pendidikan"
+                            ], 
+                            "description": "Kategori transaksi. Default 'Lainnya' jika tidak yakin."
+                        },
+                        "tipe": {
+                            "type": "string",
+                            "enum": ["Pengeluaran", "Pemasukan"],
+                            "description": "Tipe transaksi. Sesuaikan konteks; jika user mendapat uang pilih Pemasukan."
+                        }
+                    },
+                    "required": ["nama", "nominal", "kategori", "tipe"]
+                }
             }
         },
-        "required": ["nama", "nominal", "kategori", "tipe"]
+        "required": ["daftar_transaksi"]
     }
 }
 

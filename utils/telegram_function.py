@@ -185,14 +185,20 @@ def cari_dan_tampilkan_data_teks (chat_id=None, nama=None, kategori=None, tipe=N
 
 # Jawaban untuk telegram setelah insert
 def jawabanTelegramInsert(response_insert):
-    response_waktu_balasan = response_insert['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
-    return f"""Telah tercatat!
-Nama: {response_insert['nama']}
-Nominal: Rp.{response_insert['nominal']}
-Kategori: {response_insert['kategori']}
-Waktu: {response_waktu_balasan} 
-Tipe: {response_insert['tipe']}
-Catatan: {response_insert['catatan']}"""    
+    pesan_balasan = ["Telah tercatat!"]
+    for index, trx in enumerate(response_insert, start=1):
+        waktu_balasan = trx['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+        # Tambahkan judul penomoran hanya JIKA datanya lebih dari 1
+        judul = f"--- Transaksi {index} ---" if len(response_insert) > 1 else ""
+        detail = f"""{judul}
+Nama: {trx['nama']}
+Nominal: Rp.{trx['nominal']}
+Kategori: {trx['kategori']}
+Waktu: {waktu_balasan} 
+Tipe: {trx['tipe']}
+Catatan: {trx['catatan']}"""
+        pesan_balasan.append(detail.strip())
+    return "\n\n".join(pesan_balasan)
 
 # Jawaban untuk telegram setelah edit
 def jawabanTelegramEdit(data_sebelum, data_sesudah):

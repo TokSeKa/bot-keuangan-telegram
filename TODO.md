@@ -1,3 +1,6 @@
+# TODO 3 SEPT:
+- Ubah insert menjadi jamak, fungsinya dan skemanya menerima jamak. begitu juga fungsi lain.
+
 # TODO keresahan:
 - konteks gambar tidak bisa masuk seagai history, mungkin solusinya bikin history append ulang semua inputnya daripada kasih teks mentah mentah; dijadikan input normal biar append;
 - keknya harus bikin fungsi untuk cek apakah ada file dari tingkatan apapun;
