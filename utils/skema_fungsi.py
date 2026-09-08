@@ -50,47 +50,57 @@ insert_transaksi_declaration = {
 edit_transaksi_by_id_declaration = {
     "type": "function",
     "name": "edit_transaksi_by_id",
-    "description": "Mengubah transaksi berdasarkan ID. Hanya isi parameter yang ingin diubah. Jika >1, panggil paralel.",
+    "description": "Mengubah transaksi berdasarkan ID, satu atau banyak pengeditan sekaligus.",
     "parameters": {
         "type": "object",
         "properties": {
-            "id_target": {
-                "type": "integer",
-                "description": "ID transaksi yang akan diubah."
-            },
-            "nama": {
-                "type": "string",
-                "description": "Nama baru (opsional)."
-            },
-            "nominal": {
-                "type": "integer",
-                "description": "Nominal baru dalam Rupiah (opsional)."
-            },
-            "catatan": {
-                "type": "string",
-                "description": "Catatan baru (opsional)."
-            },
-            "kategori": {
-                "type": "string",
-                "enum": [
-                    "Lainnya", "Makanan", "Minuman", "Pakaian",
-                    "Alat mandi", "Tagihan Rumah", "Transportasi",
-                    "Telepon", "Sosial", "Perbaikan", "Kesehatan",
-                    "Olahraga", "Hiburan", "Pendidikan"
-                ],
-                "description": "Kategori baru (opsional)."
-            },
-            "tanggal": {
-                "type": "string",
-                "description": "Format: YYYY-MM-DD HH:MM:SS+00:00 (opsional)."
-            },
-            "tipe": {
-                "type": "string",
-                "enum": ["Pengeluaran", "Pemasukan"],
-                "description": "Tipe baru (opsional)."
+            "daftar_transaksi": {
+                "type": "array",
+                "description": "Daftar transaksi yang akan diedit.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id_target": {
+                            "type": "integer",
+                            "description": "ID transaksi yang akan diubah."
+                        },
+                        "nama": {
+                            "type": "string",
+                            "description": "Nama baru (opsional)."
+                        },
+                        "nominal": {
+                            "type": "integer",
+                            "description": "Nominal baru dalam Rupiah (opsional)."
+                        },
+                        "catatan": {
+                            "type": "string",
+                            "description": "Catatan baru (opsional)."
+                        },
+                        "kategori": {
+                            "type": "string",
+                            "enum": [
+                                "Lainnya", "Makanan", "Minuman", "Pakaian",
+                                "Alat mandi", "Tagihan Rumah", "Transportasi",
+                                "Telepon", "Sosial", "Perbaikan", "Kesehatan",
+                                "Olahraga", "Hiburan", "Pendidikan"
+                            ],
+                            "description": "Kategori baru (opsional)."
+                        },
+                        "tanggal": {
+                            "type": "string",
+                            "description": "Format: YYYY-MM-DD HH:MM:SS+00:00 (opsional)."
+                        },
+                        "tipe": {
+                            "type": "string",
+                            "enum": ["Pengeluaran", "Pemasukan"],
+                            "description": "Tipe baru (opsional)."
+                        }
+                    },
+                    "required": ["id_target"]
+                }
             }
         },
-        "required": ["id_target"]
+        "required": ["daftar_transaksi"]
     }
 }
 
@@ -159,6 +169,10 @@ search_transaksi_multi_declaration = {
             "batas_nominal_atas": {
                 "type": "integer", 
                 "description": "Maksimal nominal."
+            },
+            "limit_search": {
+                "type": "integer", 
+                "description": "Jumlah data yang ingin dicari, default 5. Min 0 - Max 100"
             }
         },
         "required": []
@@ -181,21 +195,10 @@ jawaban_telegram_declaration = {
     }
 }
 
-proses_llm_selesai_declaration = {
-    "type": "function",
-    "name": "proses_llm_selesai",
-    "description": "Penanda bahwa seluruh aksi telah selesai. Tidak mengirim pesan ke user.",
-    "parameters": {
-        "type": "object", 
-        "properties": {}, 
-        "required": []
-    }
-}
-
 llm_mendapatkan_konteks_declaration = {
     "type": "function",
     "name": "llm_mendapatkan_konteks",
-    "description": "Penanda bahwa kamu butuh hasil fungsi saat ini untuk diproses di giliran selanjutnya.",
+    "description": "Penanda bahwa kamu butuh hasil fungsi saat ini untuk diproses di giliran selanjutnya. panggil BERSAMAAN dengan fungsi database (misal search) jika kamu perlu melihat hasilnya di giliran selanjutnya.",
     "parameters": {
         "type": "object", 
         "properties": {}, 

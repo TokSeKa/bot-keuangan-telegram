@@ -111,12 +111,23 @@ while True:
                 except Exception:
                     requests.get(url=f"{url_telegram}/sendMessage", params={"chat_id": chat_id, "text": "Maaf, AI sedang diluar jangkauan! silakan coba lagi nanti!"}) 
                     continue
+                # Mengakses data penggunaan token dari response DEBUG
+                print("\n=====================================================")
+                print("Token Input:", interaction.usage.total_input_tokens)
+                print("Token Output:", interaction.usage.total_output_tokens)
+                print("Total keseluruhan token:", interaction.usage.total_tokens)
+                print("\n=====================================================")
+                
+                # --- TAMBAHKAN BAGIAN INI ---
+                daftar_fungsi = [step.name for step in interaction.steps if step.type == "function_call"]
+                print(f"[DEBUG] Gemini memanggil {len(daftar_fungsi)} fungsi sekaligus: {daftar_fungsi}\n")
+                # ----------------------------
                 
                 for step in interaction.steps:
                     if step.type == "function_call":
                         nama_fungsi = step.name
                         argumen = step.arguments
-
+                        
                         if nama_fungsi == "llm_mendapatkan_konteks":
                             butuh_gemini_lagi = True
                             
@@ -173,6 +184,7 @@ while True:
                                 
                         elif nama_fungsi == "search_transaksi_multi":
                             try:
+                                butuh_gemini_lagi = True
                                 hasil_transaksi = search_transaksi_multi(chat_id=chat_id, **argumen)
                                 kumpulan_hasil_fungsi.append({
                                     "type": "function_result",

@@ -1,6 +1,8 @@
 # TODO 3 SEPT:
 - Ubah insert menjadi jamak, fungsinya dan skemanya menerima jamak. begitu juga fungsi lain.
-
+- ubah sisa cruds (semuanya)
+- ubah panggilan jadi 2 lapis: lapis pertama cuman search, insert, manggil llm berikutnya, dan jawaban. lapis 2: Update, delete
+- ide berikutnya: bikin satu fungsi untuk lapis 2, fungsi nya kek apa aja fungsi yang butuh dipanggil di fungsi berikutnya? nantinya panggil 2 ya cuman 2 nanti di gemini conn bisa pilih aktifkan mana aja, gk perlu semuanya. berarti alat2nya harus bisa fleksibel
 # TODO keresahan:
 - konteks gambar tidak bisa masuk seagai history, mungkin solusinya bikin history append ulang semua inputnya daripada kasih teks mentah mentah; dijadikan input normal biar append;
 - keknya harus bikin fungsi untuk cek apakah ada file dari tingkatan apapun;

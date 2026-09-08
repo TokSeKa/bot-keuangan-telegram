@@ -202,32 +202,45 @@ Catatan: {trx['catatan']}"""
 
 # Jawaban untuk telegram setelah edit
 def jawabanTelegramEdit(data_sebelum, data_sesudah):
-    response_waktu_sebelum = data_sebelum['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
-    response_waktu_sesudah = data_sesudah['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
-    text_utama=f"""Perubahan data dilakukan! 
-Berikut Data terbaru:
-Nama: {data_sesudah['nama']}
-Nominal: Rp.{data_sesudah['nominal']}
-Kategori: {data_sesudah['kategori']}
-Waktu: {response_waktu_sesudah} 
-Tipe: {data_sesudah['tipe']}
-Catatan: {data_sesudah['catatan']}
+    pesan_balasan = ["Perubahan data dilakukan!"]
+    
+    for index, (sebelum, sesudah) in enumerate(zip(data_sebelum, data_sesudah), start=1):
+        # Tambahkan judul penomoran hanya JIKA datanya lebih dari 1
+        judul = f"--- Transaksi {index} ---\n" if len(data_sebelum) > 1 else ""
+        # Tangani jika transaksi ini gagal diedit (berdasarkan pesan error dari database)
+        if "error" in sesudah:
+            pesan_balasan.append(f"{judul}Gagal diedit: {sesudah['error']}".strip())
+            continue
+            
+        waktu_sebelum = sebelum['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+        waktu_sesudah = sesudah['tanggal'].astimezone(zoneinfo.ZoneInfo("Asia/Jakarta")).strftime("%d %B %Y, %H:%M WIB")
+        
+        text_item = f"""{judul}Berikut Data terbaru:
+Nama: {sesudah['nama']}
+Nominal: Rp.{sesudah['nominal']}
+Kategori: {sesudah['kategori']}
+Waktu: {waktu_sesudah} 
+Tipe: {sesudah['tipe']}
+Catatan: {sesudah['catatan']}
 
 Berikut Data sebelumnya:
-Nama: {data_sebelum['nama']}
-Nominal: Rp.{data_sebelum['nominal']}
-Kategori: {data_sebelum['kategori']}
-Waktu: {response_waktu_sebelum} 
-Tipe: {data_sebelum['tipe']}
-Catatan: {data_sebelum['catatan']}
-"""
-    data_berubah = "Data yang berubah adalah"
-    for key in data_sesudah.keys():
-        if data_sebelum[key] != data_sesudah[key]:
-            data_berubah+=f"; {key}"
-    if data_berubah != "\nData yang berubah adalah":
-        text_utama += data_berubah
-    return text_utama
+Nama: {sebelum['nama']}
+Nominal: Rp.{sebelum['nominal']}
+Kategori: {sebelum['kategori']}
+Waktu: {waktu_sebelum} 
+Tipe: {sebelum['tipe']}
+Catatan: {sebelum['catatan']}"""
+
+        # Cek data apa saja yang berubah
+        list_berubah = []
+        for key in sesudah.keys():
+            if key in sebelum and sebelum[key] != sesudah[key]:
+                list_berubah.append(key)
+        if list_berubah:
+            data_berubah = "\n\nData yang berubah adalah: " + ", ".join(list_berubah)
+            text_item += data_berubah
+        pesan_balasan.append(text_item.strip())
+    return "\n\n".join(pesan_balasan)
 
 # Jawaban untuk telegram setelah delete
 def jawabanTelegramDelete(response_delete):

@@ -105,7 +105,7 @@ def select_transaksi_by_tanggal_and_chat_id(tanggal, chat_id, conn=None):
             
 # Mencari transaksi makai fungsi %like% di SQL, mengembalikan seluruh data untuk nantinya ditampilkan menjadi tombol
 # Mencari transaksi makai fungsi %like% di SQL, mengembalikan seluruh data untuk nantinya ditampilkan menjadi tombol
-def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, catatan=None, tanggal_awal=None, tanggal_akhir=None, nominal=None, batas_nominal_bawah=None, batas_nominal_atas=None, conn=None):
+def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, catatan=None, tanggal_awal=None, tanggal_akhir=None, nominal=None, batas_nominal_bawah=None, batas_nominal_atas=None, limit_search = 5, conn=None):
     sql = "SELECT * FROM transaksi"
     kondisi = []
     parameter = []
@@ -144,7 +144,10 @@ def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, ca
     if kondisi:
         sql += " WHERE " + " AND ".join(kondisi)
         
-    sql += " ORDER BY tanggal ASC LIMIT 50" 
+    sql += " ORDER BY tanggal ASC LIMIT %s" 
+    if int(limit_search) > 100:
+        limit_search = "100"
+    parameter.append(limit_search)
     
     print("INI SQL NYA: " + sql)
     print("INI PARAMETER NYA: " + str(parameter))
@@ -163,7 +166,7 @@ def search_transaksi_multi(chat_id=None, nama=None, kategori=None, tipe=None, ca
             print(f"Error occurred, transaction rolled back: {e}")
             
 # Menginputkan transaksi ke database 
-def edit_transaksi_by_id(chat_id, id_target, nama=None, nominal=None, catatan=None, kategori=None, tanggal=None, tipe=None,  conn=None):
+def edit_transaksi_by_id(daftar_transaksi, chat_id, conn=None):
     sql_cek_id_cocok = "SELECT * FROM transaksi WHERE id = %s AND chat_id = %s;"
     sql_update = "UPDATE transaksi SET nama = COALESCE(%s, nama), nominal = COALESCE(%s, nominal), catatan = COALESCE(%s, catatan), kategori = COALESCE(%s, kategori), tanggal = COALESCE(%s, tanggal), tipe = COALESCE(%s, tipe) WHERE id = %s AND chat_id = %s RETURNING *;"
     if conn:
@@ -174,15 +177,28 @@ def edit_transaksi_by_id(chat_id, id_target, nama=None, nominal=None, catatan=No
         try:
             with conn.transaction():
                 with conn.cursor(row_factory=dict_row) as cur:
-                    # ngecek apakah id yang mau diedit milik user
-                    cur.execute(sql_cek_id_cocok,[id_target, str(chat_id)])
-                    data_lama = cur.fetchone()
-                    if data_lama is not None:
-                        cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target, str(chat_id)))
-                        data_baru = cur.fetchone()
-                        return data_lama, data_baru
-                    else:
-                        return {'error': "ID transaksi bukan milik user!"}# ini harus dicari padanan intinya ID transaksi nya bukan milik user. 
+                    hasil_lama, hasil_baru = [], []
+                    for transaksi in daftar_transaksi:
+                        id_target = transaksi.get("id_target")
+                        nama = transaksi.get("nama")
+                        nominal = transaksi.get("nominal")
+                        catatan = transaksi.get("catatan")
+                        kategori = transaksi.get("kategori")
+                        tanggal = transaksi.get("tanggal")
+                        tipe = transaksi.get("tipe")
+                        
+                        # ngecek apakah id yang mau diedit milik user
+                        cur.execute(sql_cek_id_cocok,[id_target, str(chat_id)])
+                        data_lama = cur.fetchone()
+                        if data_lama is not None:
+                            cur.execute(sql_update, (nama, nominal, catatan, kategori, tanggal, tipe, id_target, str(chat_id)))
+                            data_baru = cur.fetchone()
+                            hasil_lama.append(data_lama)
+                            hasil_baru.append(data_baru)
+                        else:
+                            hasil_lama.append({"id_target": id_target, "status": "Ditolak"})
+                            hasil_baru.append({"error": f"ID transaksi {id_target} tidak ditemukan atau bukan milik user!"})
+                    return hasil_lama, hasil_baru 
         except psycopg.Error as e:
             print(f"Error occurred, transaction rolled back: {e}")
           

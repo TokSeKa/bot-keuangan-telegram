@@ -4,9 +4,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration
+from utils.skema_fungsi import insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration
 
-tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, proses_llm_selesai_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration]
+tools_skema = [insert_transaksi_declaration, jawaban_telegram_declaration, search_transaksi_multi_declaration, llm_mendapatkan_konteks_declaration, edit_transaksi_by_id_declaration, delete_transaksi_by_id_declaration]
 gemini_api = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=gemini_api)
 
@@ -26,26 +26,22 @@ tools_tier1 = [
     insert_transaksi_declaration,
     jawaban_telegram_declaration,
     search_transaksi_multi_declaration,
-    proses_llm_selesai_declaration,
     llm_mendapatkan_konteks_declaration
 ]
 
 tools_tier2 = [
     edit_transaksi_by_id_declaration,
     delete_transaksi_by_id_declaration,
-    jawaban_telegram_declaration,
-    proses_llm_selesai_declaration
+    jawaban_telegram_declaration
 ]
 
 aturan_routing = """KONTEKS WAKTU: Waktu user UTC+7. Database memakai UTC+0. Konversi kurangi 7 jam sebelum memasukkan ke parameter fungsi.
 TAMPILAN DATA: Tampilkan SEMUA data satu per satu, JANGAN dirangkum.
 
-ATURAN AKHIR GILIRAN (WAJIB):
-Setiap giliran harus diakhiri dengan memanggil TEPAT SATU fungsi penanda berikut:
+Jika tugas belum selesai akhiri pemanggillan fungsi dengan memanggil TEPAT SATU fungsi penanda berikut:
 - llm_mendapatkan_konteks : panggil BERSAMAAN dengan fungsi database (misal search) jika kamu perlu melihat hasilnya di giliran selanjutnya.
-- proses_llm_selesai      : panggil jika aksi telah selesai dan kamu TIDAK perlu mengirim pesan teks ke user (backend akan otomatis kirim konfirmasi).
 - jawaban_telegram        : panggil jika kamu perlu mengirim teks langsung ke user (obrolan, penolakan, klarifikasi, atau notifikasi manual).
-JANGAN panggil lebih dari satu fungsi penanda dalam giliran yang sama."""
+Jika tugas telah selesai di ronde ini, maka tidak perlu memangil kedua fungsi sebelumnya."""
 
 # Fungsi mengirimkan ke gemini, nantinya text nya di balut dengan promt
 def send_chat_llm(input_user, interaction_id=None):
